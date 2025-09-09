@@ -30,6 +30,7 @@ class Planet:
         self.speed = speed
         self.angle = angle
         self.colour = colour
+        self.angleincrement = angleincrement
         print(self.position)
     def move(self):
         self.position = (self.position[0]+5, self.position[1])
@@ -76,7 +77,7 @@ resetscreen()
 
 
 mixer.init()
-mixer.music.load(r"\\FS\ajubb7tq\downloads\NEA\joy_of_rememberance.ogg")
+mixer.music.load(r"C:\Users\alanj\Downloads\joy_of_rememberance.ogg")
 mixer.music.set_volume(0.5)
 mixer.music.play(1)
 
@@ -124,7 +125,7 @@ while True:
                         planetcreate = False
                 elif planetcreate:
                     global planet 
-                    planet = Planet(mouse, 15, (255,204,156), 4, 0,5)
+                    planet = Planet(mouse, 15, (255,204,156), 4, 3, 1)
                     planet.draw()
                     
                     
