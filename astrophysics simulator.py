@@ -1,6 +1,7 @@
 import pygame
 import time
 from pygame import mixer
+import math
 pygame.init()
 background_colour = (138, 194, 212)
 width = 1600
@@ -23,7 +24,7 @@ def resetscreen():
     screen.fill((180,167,214))
 
 class Planet:
-    def __init__(self, position, radius, colour, speed, angle):
+    def __init__(self, position, radius, colour, speed, angle, angleincrement):
         self.position = position
         self.radius = radius
         self.speed = speed
@@ -33,6 +34,29 @@ class Planet:
     def move(self):
         self.position = (self.position[0]+5, self.position[1])
         resetscreen()
+    def incrementangle(self):
+
+        self.angle = self.angle + self.angleincrement
+    def anglemove(self):
+        while True:
+            if self.angle >= 360:
+                self.angle -= 360
+            elif self.angle < 0:
+                self.angle +=360
+            else:
+                break
+        if self.angle >= 0:
+            self.position = (self.position[0]+self.speed*math.sin(math.radians(self.angle)), self.position[1]-self.speed*math.cos(math.radians(self.angle)))
+        elif self.angle >= 90:
+            self.position = (self.position[0]-self.speed*math.cos(math.radians(self.angle)), self.position[1]-self.speed*math.sin(math.radians(self.angle)))   
+        elif self.angle >= 180:
+            self.position = (self.position[0]+self.speed*math.cos(math.radians(self.angle)), self.position[1]+self.speed*math.sin(math.radians(self.angle)))    
+        else:
+            self.position = (self.position[0]-self.speed*math.sin(math.radians(self.angle)), self.position[1]+self.speed*math.cos(math.radians(self.angle)))
+        resetscreen()
+            
+
+        
     def draw(self):
         pygame.draw.circle(screen, planet.colour, planet.position, planet.radius)
 
@@ -52,7 +76,7 @@ resetscreen()
 
 
 mixer.init()
-mixer.music.load(r"C:\Users\alanj\Downloads\nea\joy of remembrance.ogg")
+mixer.music.load(r"\\FS\ajubb7tq\downloads\NEA\joy_of_rememberance.ogg")
 mixer.music.set_volume(0.5)
 mixer.music.play(1)
 
@@ -100,7 +124,7 @@ while True:
                         planetcreate = False
                 elif planetcreate:
                     global planet 
-                    planet = Planet(mouse, 15, (255,204,156), 5, 90)
+                    planet = Planet(mouse, 15, (255,204,156), 4, 0,5)
                     planet.draw()
                     
                     
@@ -153,13 +177,13 @@ while True:
         if playing:
             mytext = my_font.render("playing", True, (0, 0, 0))
             screen.blit(mytext, (50,850))
-            planet.move()
+            planet.incrementangle()
+            planet.anglemove()
             planet.draw()
         else:
             mytext = my_font.render("paused", True, (0, 0, 0))
             screen.blit(mytext, (50,850))
 
         
-
     pygame.display.update()
 
