@@ -2,6 +2,9 @@ import pygame
 import time
 from pygame import mixer
 import math
+from ctypes import windll
+windll.shcore.SetProcessDpiAwareness(1)
+
 pygame.init()
 background_colour = (138, 194, 212)
 width = 1600
@@ -76,10 +79,10 @@ resetscreen()
 
 
 
-mixer.init()
-mixer.music.load(r"C:\Users\alanj\Downloads\joy_of_rememberance.ogg")
-mixer.music.set_volume(0.5)
-mixer.music.play(1)
+#mixer.init()
+#mixer.music.load(r"C:\Users\alanj\Downloads\joy_of_rememberance.ogg")
+#mixer.music.set_volume(0.5)
+#mixer.music.play(1)
 
 
 while True:
