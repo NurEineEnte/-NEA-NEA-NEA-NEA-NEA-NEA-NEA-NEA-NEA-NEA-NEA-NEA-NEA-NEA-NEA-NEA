@@ -5,6 +5,8 @@ import math
 from ctypes import windll
 windll.shcore.SetProcessDpiAwareness(1)
 
+print(windll.kernel32)
+
 pygame.init()
 background_colour = (138, 194, 212)
 width = 1600
@@ -64,7 +66,16 @@ class Planet:
     def draw(self):
         pygame.draw.circle(screen, planet.colour, planet.position, planet.radius)
 
+#these are indeed calculations but piloting this one gang
+def pilotingcalculations():
+    mass1, mass2 = planet1.mass, planet2.mass()
+    seperation = planet 1.pos(2) - planet2.pos2()
 
+
+
+
+def hashalgorithm():
+    
 
     
 
@@ -79,10 +90,16 @@ resetscreen()
 
 
 
-#mixer.init()
-#mixer.music.load(r"C:\Users\alanj\Downloads\joy_of_rememberance.ogg")
-#mixer.music.set_volume(0.5)
-#mixer.music.play(1)
+mixer.init()
+mixer.music.load(r"C:\Users\alanj\Downloads\joy_of_rememberance.ogg")
+mixer.music.set_volume(0.5)
+mixer.music.play(1)
+
+
+
+
+mixer.music.load(r"blip_effect.m4a")
+mixer.music.set_volume(0.5)
 
 
 while True:
@@ -188,6 +205,23 @@ while True:
             mytext = my_font.render("paused", True, (0, 0, 0))
             screen.blit(mytext, (50,850))
 
-        
+ if mainmenuappear == True:                
+                if 600 <= mouse[0] <= 600+450 and 400 <= mouse[1] <= 400+90:
+                    login_appear = True
+                    mainmenuappear = False
+                    resetscreen()
+                if 600 <= mouse[0] <= 600+450 and 600 <= mouse[1] <= 600+90:
+                    signup = True
+                    mainmenuappear = False
+                    resetscreen()
+                if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90:
+                    main_appear = True
+                    mainmenuappear = False
+                    resetscreen()
+testing  = my_font.render("what is this", True, (0, 0, 0))
+            screen.blit(mytext, (30,250))
+            planet.incrementangle()
+            planet.anglemove()
+                    
     pygame.display.update()
 
