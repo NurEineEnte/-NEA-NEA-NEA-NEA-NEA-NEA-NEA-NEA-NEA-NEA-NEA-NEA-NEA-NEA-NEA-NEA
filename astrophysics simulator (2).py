@@ -6,7 +6,9 @@ from ctypes import windll
 windll.shcore.SetProcessDpiAwareness(1)
 
 pygame.init()
-background_colour = (138, 194, 212)
+#background_colour = (138, 194, 212)
+#background_colour = (180,167,214)
+background_colour = (0,0,0)
 width = 1600
 height = 1000
 
@@ -23,7 +25,7 @@ playing = False
 placedobjects = []
 
 def resetscreen():
-    screen.fill((180,167,214))
+    screen.fill((0,0,0))
 
 class Planet:
     def __init__(self, position, radius, colour, speed, angle, angleincrement, mass):
@@ -66,11 +68,12 @@ class Planet:
 
         
         force = 98100000000*0.00000000006674 * self.mass * otherBody.mass / ((self.position[0] - otherBody.position[0]) ** 2 + (self.position[1] - otherBody.position[1]) ** 2)
+
         if force < 0.001:
             force = 0.001
         self.dx = self.position[0] - otherBody.position[0]
         self.dy = self.position[0] - otherBody.position[0]
-        self.position = (self.position[0] - force*self.dx, self.position[1] + force*self.dy)
+        self.position = (self.position[0] - 0.01*self.dx, self.position[1] + 0.01*self.dy)
         
         if self.speed > 0:
             self.speed -= 0.001
@@ -154,7 +157,7 @@ while True:
      #main menu       
     if mainmenuappear == True:
         my_font = pygame.font.SysFont('Times new roman', 100)
-        mytext = my_font.render("something about something", True, (0, 0, 0))
+        mytext = my_font.render("Astrophysics Simulator", True, (180,167,214))
         screen.blit(mytext, (300,100))
         if 600 <= mouse[0] <= 600+450 and 400 <= mouse[1] <= 400+90:
             pygame.draw.rect(screen,btncolour,[600,400,450,90])
