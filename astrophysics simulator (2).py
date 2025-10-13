@@ -27,6 +27,26 @@ placedobjects = []
 def resetscreen():
     screen.fill((0,0,0))
 
+def mainMenu():
+    signInBtn = Button(screen, [600,400,450,90])
+    signUpBtn = Button(screen, [600,600,450,90])
+    guestBtn = Button(screen, [600,800,450,90])
+    activeBtns = [signInBtn, signUpBtn, guestBtn]
+    for btn in activeBtns:
+        btn.render(screen,[self.x, self.y, self.width, self.height])
+    
+class Button:
+    def __init__(self, surface, position, btncolour = (208,224,227), btncolourdark = (133,143,146)):
+        self.surface = surface
+        self.x = position[0]
+        self.y = position [1]
+        self.width = position [2]
+        self.height = position[3]
+    def render(surface, position):
+        if self.x <= mouse[0] <= self.x+self.width and self.y <= mouse[1] <= self.x+self.height:
+            pygame.draw.rect(screen,btncolour,position)
+        else:
+            pygame.draw.rect(screen,btncolourdark,position)
 class Planet:
     def __init__(self, position, radius, colour, speed, angle, angleincrement, mass):
         self.position = position
@@ -67,16 +87,18 @@ class Planet:
         #sort out later, its really inefficient and an eyesore
 
         
-        force = 98100000000*0.00000000006674 * self.mass * otherBody.mass / ((self.position[0] - otherBody.position[0]) ** 2 + (self.position[1] - otherBody.position[1]) ** 2)
-
-        if force < 0.001:
-            force = 0.001
-        self.dx = self.position[0] - otherBody.position[0]
-        self.dy = self.position[0] - otherBody.position[0]
-        self.position = (self.position[0] - 0.01*self.dx, self.position[1] + 0.01*self.dy)
         
-        if self.speed > 0:
-            self.speed -= 0.001
+
+
+
+        self.dx = self.position[0] - otherBody.position[0]
+        self.dy = self.position[1] - otherBody.position[1]
+        distance = math.sqrt(self.dx**2+self.dy**2)
+        force = 9810000000000*0.00000000006674 * self.mass * otherBody.mass / ((self.position[0] - otherBody.position[0]) ** 2 + (self.position[1] - otherBody.position[1]) ** 2)
+        scaleFactor = force / distance
+        
+        self.position = (self.position[0] - scaleFactor*self.dx, self.position[1] - scaleFactor*self.dy)
+
         
         
             
@@ -148,7 +170,8 @@ while True:
                     else:
                         planetcreate = False
                 elif planetcreate: 
-                    planet = Planet(mouse, 15, (255,204,156), 4, 3, 1, 5)
+                    #planet = Planet(mouse, 15, (255,204,156), 4, 3, 1, 5)
+                    planet = Planet(mouse, 15, (64, 130, 222), 4, 3, 1, 5)
                     planet.draw(screen)
                     placedobjects.append(planet)
                     
@@ -156,6 +179,7 @@ while True:
 #code for shading rectangles
      #main menu       
     if mainmenuappear == True:
+        mainMenu()
         my_font = pygame.font.SysFont('Times new roman', 100)
         mytext = my_font.render("Astrophysics Simulator", True, (180,167,214))
         screen.blit(mytext, (300,100))
@@ -214,6 +238,7 @@ while True:
                     if i != j:
                         placedobjects[i].calculateforce(placedobjects[j])
                         placedobjects[i].movevectors(placedobjects[j])
+            
             pygame.display.update()
            
                               
