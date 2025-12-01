@@ -26,10 +26,11 @@ logInUsername = False
 logInPassword = False
 signUpUsername =False
 signUpPassword = False
+objectMenuAppear = False
 accountType = "None"
 usernameText = ""
 passwordText = ""
-
+enteringMass, enteringSpeed, enteringAngle = False, False, False
 
 placedobjects = []
 
@@ -61,10 +62,42 @@ def mainSimulator():
     activeBtns = [playBtn, placeholderBtn, createPlanetBtn]
     for btn in activeBtns:
         btn.render(screen, btn.position)
+    for planet in placedobjects:
+        planet.draw(screen)
+
+def objectMenu(body):
+    pygame.draw.rect(screen, (180,167,214), (1100, 0, 600, 950))
+    speedBtn = Button(screen, [1200,250,200,50], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
+    angleBtn = Button(screen, [1200,400,200,50], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
+    massBtn = Button(screen, [1200,550,200,50], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
+    activeBtns = [speedBtn, angleBtn, massBtn]
+    for btn in activeBtns:
+        btn.render(screen, btn.position)
+    my_font = pygame.font.SysFont('Times new roman', 75)
+    mytext = my_font.render("Planet", True, (0,0,0))
+    screen.blit(mytext, (1250,25))
+    mytext = my_font.render(str(body+1), True, (0,0,0))
+    screen.blit(mytext, (1330,95))
+    my_font = pygame.font.SysFont('Times new roman', 50)
+    mytext = my_font.render("Mass", True, (0,0,0))
+    screen.blit(mytext, (1235,195))
+    mytext = my_font.render("Speed", True, (0,0,0))
+    screen.blit(mytext, (1235,340))
+    mytext = my_font.render("Angle (bearing)", True, (0,0,0))
+    screen.blit(mytext, (1155,490))
+    my_font = pygame.font.SysFont('Times new roman', 30)
+    mytext = my_font.render(str(placedobjects[body].mass), True, (0, 0, 0))
+    screen.blit(mytext, (1200+5,257))
+    mytext = my_font.render("x 10^8 kg", True, (0, 0, 0))
+    screen.blit(mytext, (1400+5,257))
+    mytext = my_font.render("km/s", True, (0, 0, 0))
+    screen.blit(mytext, (1400+5,407))
+    mytext = my_font.render("°", True, (0, 0, 0))
+    screen.blit(mytext, (1400+5,547))
 
 def signInScreen():
     my_font = pygame.font.SysFont('Times new roman', 100)
-    mytext = my_font.render("Log in", True, (155, 0, 0))
+    mytext = my_font.render("Log in", True, (180,167,214))
     screen.blit(mytext, (675,100))
     typingUsername, typingPassword = False, False
     usernameBtn = Button(screen, [575,400,450,90], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
@@ -96,7 +129,7 @@ def signInScreen():
     
 def signUpScreen():
     my_font = pygame.font.SysFont('Times new roman', 100)
-    mytext = my_font.render("Sign up", True, (155, 0, 0))
+    mytext = my_font.render("Sign up", True, (180,167,214))
     screen.blit(mytext, (650,100))
     my_font = pygame.font.SysFont('Times new roman', 75)
     mytext = my_font.render("Account Type", True, (217, 234, 211))
@@ -193,6 +226,8 @@ class Planet:
         self.position = (self.position[0]+5, self.position[1])
     def incrementangle(self):
         self.angle = self.angle + self.angleincrement
+    def determineradius(self):
+        self.radius = self.mass * 3
 
     # i ought to remove one of these i suppose
     def anglemove(self):
@@ -239,8 +274,12 @@ class Planet:
     def draw(self, screen):
         pygame.draw.circle(screen, self.colour, self.position, self.radius)
 
-
-
+    def checkclick(self):
+        self.dy = mouse[1] -self.position[1]
+        self.dx = mouse[0] - self.position[0]
+        distance = math.sqrt(self.dx**2+self.dy**2)
+        if distance <= self.radius:
+            return True
     
 
     
@@ -354,8 +393,41 @@ while True:
                         planetcreate = False
                 elif planetcreate: 
                     planet = Planet(mouse, 15, (255,204,156), 5, 3, 1, 5)
-                    planet.draw(screen)
                     placedobjects.append(planet)
+                #change later to display stats as travel
+                elif not planetcreate and playing == False:
+                    for i in range(len(placedobjects)):
+                        placedobjects[i].checkclick()
+                        if placedobjects[i]:
+                            objectMenuAppear = True
+                            break
+                #check
+                elif mouse[0]<1100:
+                    objectMenuAppear = False
+                if objectMenuAppear == True:
+                    if 1200 <= mouse[0] <= 1200+200 and 250 <= mouse[1] <= 250+50:
+                        enterMass = str(placedobjects[i].mass)
+                        enteringMass = True
+                    elif enteringMass == True:
+                        placedobjects[i].mass = int(enterMass)
+                        enteringMass = False
+
+                    if 1200 <= mouse[0] <= 1200+200 and 400 <= mouse[1] <= 400+50:
+                        enterSpeed = str(placedobjects[i].speed)
+                        enteringSpeed = True
+                    elif enteringSpeed == True:
+                        placedobjects[i].speed = enterSpeed
+                        enteringSpeed = False
+
+                    if 1200 <= mouse[0] <= 1200+200 and 550 <= mouse[1] <= 550+50:
+                        enterAngle = str(placedobjects[i].angle)
+                        enteringAngle = True
+                    elif enteringAngle == True:
+                        placedobjects[i].angle = enterAngle
+                        enteringAngle = False
+                    
+
+                
         if event.type == pygame.KEYDOWN:
             
             if logInUsername == True:
@@ -395,7 +467,21 @@ while True:
                 else:
                     passwordText += event.unicode
                     
-                    
+            if enteringMass == True:
+                if event.key == pygame.K_BACKSPACE:
+                    enterMass = enterMass[:-1]
+                else:
+                    enterMass += event.unicode
+            if enteringSpeed == True:
+                if event.key == pygame.K_BACKSPACE:
+                    enterSpeed = enterSpeed[:-1]
+                else:
+                    enterSpeed += event.unicode
+            if enteringAngle == True:
+                if event.key == pygame.K_BACKSPACE:
+                    enterAngle = enterAngle[:-1]
+                else:
+                    enterAngle += event.unicode
 #code for shading rectangles
      #main menu       
     if mainmenuappear == True:
@@ -403,7 +489,8 @@ while True:
 
     if main_appear == True:
         mainSimulator()
-
+        if objectMenuAppear:
+            objectMenu(i)
         my_font = pygame.font.SysFont('Times new roman', 25)                  
         if planetcreate:
             mytext = my_font.render("planet on", True, (0, 0, 0))
@@ -413,13 +500,15 @@ while True:
             screen.blit(mytext, (1000,850))
 
         if playing:
+
+            resetScreen()
             mytext = my_font.render("playing", True, (0, 0, 0))
             screen.blit(mytext, (50,850))
 
-            resetScreen()
             for i in range(len(placedobjects)):
                 placedobjects[i].incrementangle()
                 placedobjects[i].anglemove()
+                #code could be more optimised if below dealt with
                 placedobjects[i].draw(screen)
 
                 #heres a thing
@@ -428,6 +517,7 @@ while True:
                         placedobjects[i].calculateforce(placedobjects[j])
                         placedobjects[i].movevectors(placedobjects[j])
             
+
             pygame.display.update()
            
                               
