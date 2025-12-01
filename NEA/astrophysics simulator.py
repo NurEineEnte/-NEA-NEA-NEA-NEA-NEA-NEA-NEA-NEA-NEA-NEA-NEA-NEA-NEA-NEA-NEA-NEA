@@ -3,6 +3,7 @@ import time
 from pygame import mixer
 import math
 from ctypes import windll
+import sys
 windll.shcore.SetProcessDpiAwareness(1)
 
 pygame.init()
@@ -17,10 +18,18 @@ btncolourdark = (133,143,146)
 
 mainmenuappear = True
 login_appear = False
-signup = False
+signup_appear = False
 main_appear = False
 planetcreate = False
 playing = False
+logInUsername = False
+logInPassword = False
+signUpUsername =False
+signUpPassword = False
+accountType = "None"
+usernameText = ""
+passwordText = ""
+
 
 placedobjects = []
 
@@ -30,13 +39,20 @@ def resetScreen():
 def mainMenu():
     my_font = pygame.font.SysFont('Times new roman', 100)
     mytext = my_font.render("Astrophysics Simulator", True, (180,167,214))
-    screen.blit(mytext, (300,100))
+    screen.blit(mytext, (350,100))
     signInBtn = Button(screen, [600,400,450,90])
     signUpBtn = Button(screen, [600,600,450,90])
     guestBtn = Button(screen, [600,800,450,90])
     activeBtns = [signInBtn, signUpBtn, guestBtn]
     for btn in activeBtns:
         btn.render(screen, btn.position)
+    my_font = pygame.font.SysFont('Times new roman', 50)
+    mytext = my_font.render("Sign in", True, (0,0,0))
+    screen.blit(mytext, (750,415)) 
+    mytext = my_font.render("Sign up", True, (0,0,0))
+    screen.blit(mytext, (745,615)) 
+    mytext = my_font.render("Guest", True, (0,0,0))
+    screen.blit(mytext, (760,815)) 
 
 def mainSimulator():
     playBtn = Button(screen, [0,850,200,100])
@@ -46,12 +62,107 @@ def mainSimulator():
     for btn in activeBtns:
         btn.render(screen, btn.position)
 
-def signUpScreen():
-    print("hi")
-    #placeholder
 def signInScreen():
-    print("hi")
-    #placeholder
+    my_font = pygame.font.SysFont('Times new roman', 100)
+    mytext = my_font.render("Log in", True, (155, 0, 0))
+    screen.blit(mytext, (675,100))
+    typingUsername, typingPassword = False, False
+    usernameBtn = Button(screen, [575,400,450,90], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
+    passwordBtn = Button(screen, [575,600,450,90], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
+    signInBtn = Button(screen, [575,800,450,90])
+    backBtn = Button(screen, [575,910,450,20])
+    activeBtns = [usernameBtn, passwordBtn,signInBtn, backBtn]
+    for btn in activeBtns:
+        btn.render(screen, btn.position)
+    my_font = pygame.font.SysFont('Times new roman', 30)
+    if usernameText == "":
+        mytext = my_font.render("input username here", True, (0, 0, 0))
+        screen.blit(mytext, (575+5,400+30))
+    else:
+        mytext = my_font.render(usernameText, True, (0, 0, 0))
+        screen.blit(mytext, (575+5,400+30))
+    if passwordText == "":
+        mytext = my_font.render("input password here", True, (0, 0, 0))
+        screen.blit(mytext, (575+5,600+30))
+    else:
+        mytext = my_font.render(passwordText, True, (0, 0, 0))
+        screen.blit(mytext, (575+5,600+30))
+    mytext = my_font.render("Back", True, (0,0,0))
+    screen.blit(mytext, (767,905))
+    my_font = pygame.font.SysFont('Times new roman', 50)
+    mytext = my_font.render("Sign in", True, (0,0,0))
+    screen.blit(mytext, (725,815))
+
+    
+def signUpScreen():
+    my_font = pygame.font.SysFont('Times new roman', 100)
+    mytext = my_font.render("Sign up", True, (155, 0, 0))
+    screen.blit(mytext, (650,100))
+    my_font = pygame.font.SysFont('Times new roman', 75)
+    mytext = my_font.render("Account Type", True, (217, 234, 211))
+    screen.blit(mytext, (890,350))
+    typingUsername, typingPassword = False, False
+    usernameBtn = Button(screen, [300,400,450,90], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
+    passwordBtn = Button(screen, [300,600,450,90], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
+    studentBtn = Button(screen, [850,450,200,90], btncolour=(255,242,204), btncolourdark=(223, 210, 171))
+    teacherBtn = Button(screen, [1150,450,200,90], btncolour=(234,209,220), btncolourdark=(206, 183, 193))
+    backBtn = Button(screen, [575,910,450,20])
+    
+    signInBtn = Button(screen, [575,800,450,90])
+    activeBtns = [usernameBtn, passwordBtn, teacherBtn, studentBtn, signInBtn, backBtn]
+    for btn in activeBtns:
+        btn.render(screen, btn.position)
+    my_font = pygame.font.SysFont('Times new roman', 30)
+    if usernameText == "":
+        mytext = my_font.render("input username here", True, (0, 0, 0))
+        screen.blit(mytext, (300+5,400+30))
+    else:
+        mytext = my_font.render(usernameText, True, (0, 0, 0))
+        screen.blit(mytext, (300+5,400+30))
+    if passwordText == "":
+        mytext = my_font.render("input password here", True, (0, 0, 0))
+        screen.blit(mytext, (300+5,600+30))
+    else:
+        mytext = my_font.render(passwordText, True, (0, 0, 0))
+        screen.blit(mytext, (300+5,600+30))
+    mytext = my_font.render("Back", True, (0,0,0))
+    screen.blit(mytext, (767,905))
+    mytext = my_font.render("Student", True, (0, 0, 0))
+    screen.blit(mytext, (900,450+30))
+    mytext = my_font.render("Teacher", True, (0, 0, 0))
+    screen.blit(mytext, (1200,450+30))
+    my_font = pygame.font.SysFont('Times new roman', 50)
+    if accountType == "Teacher":
+        colour = (206, 183, 193)
+    elif accountType == "Student":
+        colour = (223, 210, 171)
+    else:
+        colour = (133,143,146)
+    mytext = my_font.render("Account type: " + accountType, True, (colour))
+    screen.blit(mytext, (850,575))
+    mytext = my_font.render("Create account", True, (0,0,0))
+    screen.blit(mytext, (650,815))   
+    
+
+#this hashing algorithm is a bit scuffed icl
+def hashingAlgorithm():
+    charValueList = []
+    for i in range(len(passwordText)):
+        charValueList.append(ord(passwordText[i]))
+    totalValue = 0
+    for i in range(charValueList()):
+        if i % 4 == 0:
+            charValueList[i] += 20
+        elif i % 3 == 0:
+            charValueList[i] -= 1
+        elif i % 2 == 0:
+            charValueList[i] *= 2
+        elif i % 1 == 0:
+            charValueList[i] += 67
+        else:
+            charValueList[i] -= 4
+        totalValue += (charValueList[i]+1)
+    return totalValue
 
 class Button:
     def __init__(self, surface, position, btncolour = (208,224,227), btncolourdark = (133,143,146)):
@@ -61,11 +172,13 @@ class Button:
         self.width = position [2]
         self.height = position[3]
         self.position = position
+        self.colour = btncolour
+        self.colourdark = btncolourdark
     def render(self, surface, position):
         if self.x <= mouse[0] <= self.x+self.width and self.y <= mouse[1] <= self.y+self.height:
-            pygame.draw.rect(screen,btncolour,self.position)
+            pygame.draw.rect(screen,self.colour,self.position)
         else:
-            pygame.draw.rect(screen,btncolourdark,self.position)
+            pygame.draw.rect(screen,self.colourdark,self.position)
 class Planet:
     def __init__(self, position, radius, colour, speed, angle, angleincrement, mass):
         self.position = position
@@ -154,6 +267,7 @@ while True:
         mouse = pygame.mouse.get_pos()
         if event.type == pygame.QUIT:
             pygame.quit()
+            sys.exit()
             
         if event.type == pygame.MOUSEBUTTONDOWN:
 
@@ -165,7 +279,7 @@ while True:
                     mainmenuappear = False
                     resetScreen()
                 if 600 <= mouse[0] <= 600+450 and 600 <= mouse[1] <= 600+90:
-                    signup = True
+                    signup_appear = True
                     mainmenuappear = False
                     resetScreen()
                 if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90:
@@ -173,7 +287,56 @@ while True:
                     mainmenuappear = False
                     resetScreen()
 
-            if main_appear == True:
+            elif login_appear == True:
+                if 600 <= mouse[0] <= 600+450 and 400 <= mouse[1] <= 400+90:
+                    usernameText = ""
+                    logInUsername = True
+                else:
+                    logInUsername = False    
+                if 600 <= mouse[0] <= 600+450 and 600 <= mouse[1] <= 600+90:
+                    passwordText = ""
+                    logInPassword = True
+                else:
+                    logInPassword = False    
+                if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90:
+                    main_appear = True
+                    login_appear = False
+                    resetScreen()
+                elif 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
+                    mainmenuappear = True
+                    login_appear = False
+                    resetScreen()
+            
+
+            elif signup_appear:
+                if 300 <= mouse[0] <= 300+450 and 400 <= mouse[1] <= 400+90:
+                    usernameText = ""
+                    signUpUsername = True
+                else:
+                    signUpUsername = False    
+                if 300 <= mouse[0] <= 300+450 and 600 <= mouse[1] <= 600+90:
+                    passwordText = ""
+                    signUpPassword = True
+                else:
+                    signUpPassword = False 
+                
+                if 850 <= mouse[0] <= 850+200 and 450 <= mouse[1] <= 450+90:
+                    accountType = "Student"
+                elif 1150 <= mouse[0] <= 1150+200 and 450 <= mouse[1] <= 450+90:
+                    accountType = "Teacher"    
+                
+                if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90:
+                    main_appear = True
+                    signup_appear = False
+                elif 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
+                    mainmenuappear = True
+                    signup_appear = False
+                    resetScreen()
+                #careful of this particular reset
+                resetScreen()
+
+
+            elif main_appear == True:
                 #play button
                 if 0 <= mouse[0] <= 0+200 and 850 <= mouse[1] <= 850+100:
                     resetScreen()
@@ -193,6 +356,44 @@ while True:
                     planet = Planet(mouse, 15, (255,204,156), 5, 3, 1, 5)
                     planet.draw(screen)
                     placedobjects.append(planet)
+        if event.type == pygame.KEYDOWN:
+            
+            if logInUsername == True:
+                if event.key == pygame.K_BACKSPACE:
+                    usernameText = usernameText[:-1]
+                elif len(usernameText)>=30:
+                    my_font = pygame.font.SysFont('Times new roman', 50)
+                    mytext = my_font.render("username too long", True, (180,167,214))
+                    screen.blit(mytext, (575,500))
+                else:
+                    usernameText += event.unicode
+            if logInPassword == True:
+                if event.key == pygame.K_BACKSPACE:
+                    passwordText = passwordText[:-1]
+                elif len(passwordText)>=30:
+                    my_font = pygame.font.SysFont('Times new roman', 50)
+                    mytext = my_font.render("password too long", True, (180,167,214))
+                    screen.blit(mytext, (575,500))
+                else:
+                    passwordText += event.unicode
+            if signUpUsername == True:
+                if event.key == pygame.K_BACKSPACE:
+                    usernameText = usernameText[:-1]
+                elif len(usernameText)>=30:
+                    my_font = pygame.font.SysFont('Times new roman', 50)
+                    mytext = my_font.render("username too long", True, (180,167,214))
+                    screen.blit(mytext, (575,500))
+                else:
+                    usernameText += event.unicode
+            if signUpPassword == True:
+                if event.key == pygame.K_BACKSPACE:
+                    passwordText = passwordText[:-1]
+                elif len(passwordText)>=30:
+                    my_font = pygame.font.SysFont('Times new roman', 50)
+                    mytext = my_font.render("password too long", True, (180,167,214))
+                    screen.blit(mytext, (575,500))
+                else:
+                    passwordText += event.unicode
                     
                     
 #code for shading rectangles
@@ -234,13 +435,11 @@ while True:
             mytext = my_font.render("paused", True, (0, 0, 0))
             screen.blit(mytext, (50,850))
     elif login_appear == True:
-        my_font = pygame.font.SysFont('Times new roman', 45)
-        mytext = my_font.render("log in", True, (155, 0, 0))
-        screen.blit(mytext, (500,850))
-    elif signup == True:
-        my_font = pygame.font.SysFont('Times new roman', 45)
-        mytext = my_font.render("sign up", True, (155, 0, 0))
-        screen.blit(mytext, (500,850))
+        signInScreen()
+
+    elif signup_appear == True:
+        signUpScreen()
+
 
         
     pygame.display.update()
