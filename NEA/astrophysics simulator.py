@@ -56,6 +56,7 @@ def mainMenu():
     screen.blit(mytext, (760,815)) 
 
 def mainSimulator():
+    resetScreen()
     playBtn = Button(screen, [0,850,200,100])
     placeholderBtn = Button(screen, [200,850,800,100])
     createPlanetBtn = Button(screen, [1000,850,100,100])
@@ -63,6 +64,7 @@ def mainSimulator():
     for btn in activeBtns:
         btn.render(screen, btn.position)
     for planet in placedobjects:
+        planet.determineradius()
         planet.draw(screen)
 
 def objectMenu(body):
@@ -88,6 +90,10 @@ def objectMenu(body):
     my_font = pygame.font.SysFont('Times new roman', 30)
     mytext = my_font.render(str(placedobjects[body].mass), True, (0, 0, 0))
     screen.blit(mytext, (1200+5,257))
+    mytext = my_font.render(str(placedobjects[body].speed), True, (0, 0, 0))
+    screen.blit(mytext, (1200+5,407))
+    mytext = my_font.render(str(placedobjects[body].angle), True, (0, 0, 0))
+    screen.blit(mytext, (1200+5,557))
     mytext = my_font.render("x 10^8 kg", True, (0, 0, 0))
     screen.blit(mytext, (1400+5,257))
     mytext = my_font.render("km/s", True, (0, 0, 0))
@@ -227,7 +233,7 @@ class Planet:
     def incrementangle(self):
         self.angle = self.angle + self.angleincrement
     def determineradius(self):
-        self.radius = self.mass * 3
+        self.radius = 15 + self.mass * 0.5
 
     # i ought to remove one of these i suppose
     def anglemove(self):
@@ -248,7 +254,7 @@ class Planet:
             self.position = (self.position[0]-self.speed*math.sin(math.radians(self.angle)), self.position[1]+self.speed*math.cos(math.radians(self.angle)))
     def calculateforce(self, otherBody):
         distanceSquared = (self.position[0] - otherBody.position[0]) ** 2 + (self.position[1] - otherBody.position[1]) ** 2
-        force = 981000000000*0.00000000006674 * self.mass * otherBody.mass / distanceSquared
+        force = 0.00000000006674 * self.mass * otherBody.mass / distanceSquared
     #is this really right? maybe remove a 0 from force modifier
     def movevectors(self, otherBody):
         #sort out later, its really inefficient and an eyesore
@@ -261,7 +267,7 @@ class Planet:
         self.dx = self.position[0] - otherBody.position[0]
         self.dy = self.position[1] - otherBody.position[1]
         distance = math.sqrt(self.dx**2+self.dy**2)
-        force = 98100000000000*0.00000000006674 * self.mass * otherBody.mass / ((self.position[0] - otherBody.position[0]) ** 2 + (self.position[1] - otherBody.position[1]) ** 2)
+        force = 0.00000000006674 * self.mass* 100000000 * otherBody.mass * 100000000 / (((self.position[0] - otherBody.position[0]) ** 2 + (self.position[1] - otherBody.position[1]) ** 2)*1000)
         scaleFactor = force / distance
         
         self.position = (self.position[0] - scaleFactor*self.dx, self.position[1] - scaleFactor*self.dy)
@@ -294,7 +300,7 @@ resetScreen()
 
 
 mixer.init()
-mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+mixer.music.load(r"C:\Users\alanj\Downloads\NEA\above_story.ogg")
 mixer.music.set_volume(0.5)
 mixer.music.play(1)
 
@@ -394,36 +400,38 @@ while True:
                 elif planetcreate: 
                     planet = Planet(mouse, 15, (255,204,156), 5, 3, 1, 5)
                     placedobjects.append(planet)
+                elif mouse[0]<1100 and objectMenuAppear == True:
+                    objectMenuAppear = False
                 #change later to display stats as travel
-                elif not planetcreate and playing == False:
-                    for i in range(len(placedobjects)):
-                        placedobjects[i].checkclick()
-                        if placedobjects[i]:
+                elif not planetcreate and playing == False and objectMenuAppear == False:
+                    for checkedplanet in range(len(placedobjects)):
+                        if placedobjects[checkedplanet].checkclick():
                             objectMenuAppear = True
                             break
+                    print(checkedplanet)
+                    
                 #check
-                elif mouse[0]<1100:
-                    objectMenuAppear = False
+
                 if objectMenuAppear == True:
                     if 1200 <= mouse[0] <= 1200+200 and 250 <= mouse[1] <= 250+50:
-                        enterMass = str(placedobjects[i].mass)
+                        enterMass = str(placedobjects[checkedplanet].mass)
                         enteringMass = True
                     elif enteringMass == True:
-                        placedobjects[i].mass = int(enterMass)
+                        placedobjects[checkedplanet].mass = int(enterMass)
                         enteringMass = False
 
                     if 1200 <= mouse[0] <= 1200+200 and 400 <= mouse[1] <= 400+50:
-                        enterSpeed = str(placedobjects[i].speed)
+                        enterSpeed = str(placedobjects[checkedplanet].speed)
                         enteringSpeed = True
                     elif enteringSpeed == True:
-                        placedobjects[i].speed = enterSpeed
+                        placedobjects[checkedplanet].speed = int(enterSpeed)
                         enteringSpeed = False
 
                     if 1200 <= mouse[0] <= 1200+200 and 550 <= mouse[1] <= 550+50:
-                        enterAngle = str(placedobjects[i].angle)
+                        enterAngle = str(placedobjects[checkedplanet].angle)
                         enteringAngle = True
                     elif enteringAngle == True:
-                        placedobjects[i].angle = enterAngle
+                        placedobjects[checkedplanet].angle = int(enterAngle)
                         enteringAngle = False
                     
 
@@ -489,8 +497,7 @@ while True:
 
     if main_appear == True:
         mainSimulator()
-        if objectMenuAppear:
-            objectMenu(i)
+
         my_font = pygame.font.SysFont('Times new roman', 25)                  
         if planetcreate:
             mytext = my_font.render("planet on", True, (0, 0, 0))
@@ -498,7 +505,9 @@ while True:
         else:
             mytext = my_font.render("planet off", True, (0, 0, 0))
             screen.blit(mytext, (1000,850))
-
+        if objectMenuAppear:
+            objectMenu(checkedplanet)
+            
         if playing:
 
             resetScreen()
@@ -506,6 +515,7 @@ while True:
             screen.blit(mytext, (50,850))
 
             for i in range(len(placedobjects)):
+                #to be removed some point ofc
                 placedobjects[i].incrementangle()
                 placedobjects[i].anglemove()
                 #code could be more optimised if below dealt with
