@@ -4,6 +4,7 @@ from pygame import mixer
 import math
 from ctypes import windll
 import sys
+import sqlite3
 windll.shcore.SetProcessDpiAwareness(1)
 
 pygame.init()
@@ -19,6 +20,9 @@ btncolourdark = (133,143,146)
 mainmenuappear = True
 login_appear = False
 signup_appear = False
+securityCreateAppear = False
+SecurityVerifyAppear = False
+securityCreateInput = False
 main_appear = False
 planetcreate = False
 playing = False
@@ -30,6 +34,8 @@ objectMenuAppear = False
 accountType = "None"
 usernameText = ""
 passwordText = ""
+securityQuestionID = ""
+securityText = ""
 enteringMass, enteringSpeed, enteringAngle = False, False, False
 
 placedobjects = []
@@ -140,7 +146,6 @@ def signUpScreen():
     my_font = pygame.font.SysFont('Times new roman', 75)
     mytext = my_font.render("Account Type", True, (217, 234, 211))
     screen.blit(mytext, (890,350))
-    typingUsername, typingPassword = False, False
     usernameBtn = Button(screen, [300,400,450,90], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
     passwordBtn = Button(screen, [300,600,450,90], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
     studentBtn = Button(screen, [850,450,200,90], btncolour=(255,242,204), btncolourdark=(223, 210, 171))
@@ -182,14 +187,54 @@ def signUpScreen():
     mytext = my_font.render("Create account", True, (0,0,0))
     screen.blit(mytext, (650,815))   
     
+def securityQuestionScreen():
+    my_font = pygame.font.SysFont('Times new roman', 100)
+    mytext = my_font.render("Create Security Question", True, (180,167,214))
+    screen.blit(mytext, (360,100))
+    my_font = pygame.font.SysFont('Times new roman', 75)
+    mytext = my_font.render("Question", True, (217, 234, 211))
+    screen.blit(mytext, (890,350))
+    usernameBtn = Button(screen, [300,400,450,90], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
+    firstBtn = Button(screen, [850,450,100,90], btncolour=(255,242,204), btncolourdark=(223, 210, 171))
+    secondBtn = Button(screen, [1025,450,100,90], btncolour=(234,209,220), btncolourdark=(206, 183, 193))
+    thirdBtn = Button(screen, [1200,450,100,90], btncolour=(234,209,220), btncolourdark=(206, 183, 193))
+    backBtn = Button(screen, [575,910,450,20])
+    
+    signInBtn = Button(screen, [575,800,450,90])
+    activeBtns = [usernameBtn, firstBtn, secondBtn, thirdBtn, signInBtn, backBtn]
+    for btn in activeBtns:
+        btn.render(screen, btn.position)
+    my_font = pygame.font.SysFont('Times new roman', 30)
+    if securityText == "":
+        mytext = my_font.render("input answer here", True, (0, 0, 0))
+        screen.blit(mytext, (300+5,400+30))
+    else:
+        mytext = my_font.render(securityText, True, (0, 0, 0))
+        screen.blit(mytext, (300+5,400+30))
 
+    mytext = my_font.render("Back", True, (0,0,0))
+    screen.blit(mytext, (767,905))
+    mytext = my_font.render("1", True, (0, 0, 0))
+    screen.blit(mytext, (890,450+30))
+    mytext = my_font.render("2", True, (0, 0, 0))
+    screen.blit(mytext, (1065,450+30))
+    mytext = my_font.render("3", True, (0, 0, 0))
+    screen.blit(mytext, (1240,450+30))
+    my_font = pygame.font.SysFont('Times new roman', 50)
+
+# here goes the question from database
+    mytext = my_font.render("Account type: " + str(securityQuestionID), True, (133,143,146))
+    screen.blit(mytext, (850,575))
+
+    mytext = my_font.render("Create account", True, (0,0,0))
+    screen.blit(mytext, (650,815))       
 #this hashing algorithm is a bit scuffed icl
-def hashingAlgorithm():
+def hashingAlgorithm(textToHash):
     charValueList = []
-    for i in range(len(passwordText)):
-        charValueList.append(ord(passwordText[i]))
+    for i in range(len(textToHash)):
+        charValueList.append(ord(textToHash[i]))
     totalValue = 0
-    for i in range(charValueList()):
+    for i in range(len(charValueList)):
         if i % 4 == 0:
             charValueList[i] += 20
         elif i % 3 == 0:
@@ -202,6 +247,34 @@ def hashingAlgorithm():
             charValueList[i] -= 4
         totalValue += (charValueList[i]+1)
     return totalValue
+
+def newAccountDB():
+    con = sqlite3.connect("simulatorDB.db")
+    cur = con.cursor()
+    result = cur.execute("""
+                    SELECT *
+                    FROM accounts
+                    ORDER BY accountID DESC;
+                        """)
+    g = int(result.fetchone()[0]) + 1
+    if accountType == "Student":
+        securityQuestionID = ""
+        securityText = ""
+    insert_data_query = """
+    INSERT INTO accounts VALUES(""" + str(g) + """, " """ + usernameText + """ ", " """ + str(hashingAlgorithm(passwordText)) + """ ", " """ + accountType[0] + """ ", " """ + securityText + """ ", " """ + str(securityQuestionID) + """ ");
+    """
+    cur.execute(insert_data_query)
+    con.commit()
+    
+    insert_data_query = """
+    INSERT INTO accountstats VALUES(""" + str(g) + """, 0, 0);
+    """
+    cur.execute(insert_data_query)
+    con.commit()
+
+    con.close()
+                         
+
 
 class Button:
     def __init__(self, surface, position, btncolour = (208,224,227), btncolourdark = (133,143,146)):
@@ -252,22 +325,22 @@ class Planet:
             self.position = (self.position[0]+self.speed*math.cos(math.radians(self.angle)), self.position[1]+self.speed*math.sin(math.radians(self.angle)))    
         else:
             self.position = (self.position[0]-self.speed*math.sin(math.radians(self.angle)), self.position[1]+self.speed*math.cos(math.radians(self.angle)))
-    def calculateforce(self, otherBody):
-        distanceSquared = (self.position[0] - otherBody.position[0]) ** 2 + (self.position[1] - otherBody.position[1]) ** 2
-        force = 0.00000000006674 * self.mass * otherBody.mass / distanceSquared
     #is this really right? maybe remove a 0 from force modifier
     def movevectors(self, otherBody):
         #sort out later, its really inefficient and an eyesore
-
         
         
-
-
+        
+        
+        
+        
+        # oh hell nah we cooked
 
         self.dx = self.position[0] - otherBody.position[0]
         self.dy = self.position[1] - otherBody.position[1]
+        distanceSquared = self.dx ** 2 + self.dy ** 2
         distance = math.sqrt(self.dx**2+self.dy**2)
-        force = 0.00000000006674 * self.mass* 100000000 * otherBody.mass * 100000000 / (((self.position[0] - otherBody.position[0]) ** 2 + (self.position[1] - otherBody.position[1]) ** 2)*1000)
+        force = 0.001*0.00000000006674 * self.mass* 100000000 * otherBody.mass * 100000000 / distanceSquared
         scaleFactor = force / distance
         
         self.position = (self.position[0] - scaleFactor*self.dx, self.position[1] - scaleFactor*self.dy)
@@ -370,9 +443,14 @@ while True:
                 elif 1150 <= mouse[0] <= 1150+200 and 450 <= mouse[1] <= 450+90:
                     accountType = "Teacher"    
                 
-                if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90:
-                    main_appear = True
-                    signup_appear = False
+                if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90 and len(passwordText) > 4 and len(usernameText) > 4:
+                    if accountType == "Student":
+                        newAccountDB()
+                        main_appear = True
+                        signup_appear = False
+                    elif accountType == "Teacher":
+                        signup_appear = False
+                        securityCreateAppear = True
                 elif 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
                     mainmenuappear = True
                     signup_appear = False
@@ -380,6 +458,30 @@ while True:
                 #careful of this particular reset
                 resetScreen()
 
+            elif securityCreateAppear:
+                if 300 <= mouse[0] <= 300+450 and 400 <= mouse[1] <= 400+90:
+                    securityText = ""
+                    securityCreateInput = True
+                else:
+                    securityCreateInput = False    
+                
+                if 850 <= mouse[0] <= 850+200 and 450 <= mouse[1] <= 450+90:
+                    securityQuestionID = 1
+                elif 1025 <= mouse[0] <= 1025+200 and 450 <= mouse[1] <= 450+90:
+                    securityQuestionID = 2   
+                elif 1200 <= mouse[0] <= 1200+200 and 450 <= mouse[1] <= 450+90:
+                    securityQuestionID = 3   
+                
+                if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90 and len(passwordText) > 4 and len(usernameText) > 4:
+                        newAccountDB()
+                        main_appear = True
+                        securityCreateAppear = False
+                elif 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
+                    mainmenuappear = True
+                    securityCreateAppear = False
+                    resetScreen()
+                #careful of this particular reset
+                resetScreen()
 
             elif main_appear == True:
                 #play button
@@ -474,7 +576,18 @@ while True:
                     screen.blit(mytext, (575,500))
                 else:
                     passwordText += event.unicode
-                    
+            
+            if securityCreateInput:
+                if event.key == pygame.K_BACKSPACE:
+                    securityText = securityText[:-1]
+                elif len(securityText)>=30:
+                    my_font = pygame.font.SysFont('Times new roman', 50)
+                    mytext = my_font.render("answer too long", True, (180,167,214))
+                    screen.blit(mytext, (575,500))
+                else:
+                    securityText += event.unicode       
+
+
             if enteringMass == True:
                 if event.key == pygame.K_BACKSPACE:
                     enterMass = enterMass[:-1]
@@ -490,6 +603,7 @@ while True:
                     enterAngle = enterAngle[:-1]
                 else:
                     enterAngle += event.unicode
+                    
 #code for shading rectangles
      #main menu       
     if mainmenuappear == True:
@@ -524,7 +638,6 @@ while True:
                 #heres a thing
                 for j in range(len(placedobjects)):
                     if i != j:
-                        placedobjects[i].calculateforce(placedobjects[j])
                         placedobjects[i].movevectors(placedobjects[j])
             
 
@@ -540,6 +653,8 @@ while True:
     elif signup_appear == True:
         signUpScreen()
 
+    elif securityCreateAppear:
+        securityQuestionScreen()
 
         
     pygame.display.update()
