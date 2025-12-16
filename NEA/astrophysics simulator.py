@@ -18,18 +18,23 @@ btncolour = (208,224,227)
 btncolourdark = (133,143,146)
 
 mainmenuappear = True
+mainmenu2appear = False
 login_appear = False
 signup_appear = False
 securityCreateAppear = False
-SecurityVerifyAppear = False
+securityVerifyAppear = False
 securityCreateInput = False
+securityVerifyInput = False
 main_appear = False
+musicmuted = False
 planetcreate = False
 playing = False
 logInUsername = False
 logInPassword = False
 signUpUsername =False
 signUpPassword = False
+viewStudentStats = False
+loadSims_appear = False
 objectMenuAppear = False
 accountType = "None"
 usernameText = ""
@@ -61,14 +66,85 @@ def mainMenu():
     mytext = my_font.render("Guest", True, (0,0,0))
     screen.blit(mytext, (760,815)) 
 
-def mainSimulator():
-    resetScreen()
-    playBtn = Button(screen, [0,850,200,100])
-    placeholderBtn = Button(screen, [200,850,800,100])
-    createPlanetBtn = Button(screen, [1000,850,100,100])
-    activeBtns = [playBtn, placeholderBtn, createPlanetBtn]
+def mainMenuLoggedIn():
+    my_font = pygame.font.SysFont('Times new roman', 100)
+    mytext = my_font.render("Astrophysics Simulator (logged in)", True, (180,167,214))
+    screen.blit(mytext, (85,100))
+    newBtn = Button(screen, [600,400,450,90])
+    loadBtn = Button(screen, [600,600,450,90])
+    statsBtn = Button(screen, [600,800,450,90])
+    activeBtns = [newBtn, loadBtn, statsBtn]
     for btn in activeBtns:
         btn.render(screen, btn.position)
+    my_font = pygame.font.SysFont('Times new roman', 50)
+    mytext = my_font.render("New Simulation", True, (0,0,0))
+    screen.blit(mytext, (660,415)) 
+    mytext = my_font.render("Load Simulation", True, (0,0,0))
+    screen.blit(mytext, (655,615)) 
+    mytext = my_font.render("View Student Stats", True, (0,0,0))
+    screen.blit(mytext, (630,815))
+
+def loadSimsMenu():
+    my_font = pygame.font.SysFont('Times new roman', 100)
+    mytext = my_font.render("Load Simulation", True, (180,167,214))
+    screen.blit(mytext, (500,100))
+    btn1 = Button(screen, [400,400,250,90])
+    btn2 = Button(screen, [400,600,250,90])
+    btn3 = Button(screen, [400,800,250,90])
+    btn4 = Button(screen, [1000,400,250,90])
+    btn5 = Button(screen, [1000,600,250,90])
+    btn6 = Button(screen, [1000,800,250,90])
+    backBtn = Button(screen, [575,910,450,20])
+    activeBtns = [btn1, btn2, btn3, btn4, btn5, btn6, backBtn]
+    for btn in activeBtns:
+        btn.render(screen, btn.position)
+    my_font = pygame.font.SysFont('Times new roman', 50)
+    mytext = my_font.render("Sim 1", True, (0,0,0))
+    screen.blit(mytext, (460,415)) 
+    mytext = my_font.render("Sim 2", True, (0,0,0))
+    screen.blit(mytext, (460,615)) 
+    mytext = my_font.render("Sim 3", True, (0,0,0))
+    screen.blit(mytext, (460,815))
+    mytext = my_font.render("Sim 4", True, (0,0,0))
+    screen.blit(mytext, (1060,415)) 
+    mytext = my_font.render("Sim 5", True, (0,0,0))
+    screen.blit(mytext, (1060,615)) 
+    mytext = my_font.render("Sim 6", True, (0,0,0))
+    screen.blit(mytext, (1060,815))
+    my_font = pygame.font.SysFont('Times new roman', 30)
+    mytext = my_font.render("Back", True, (0,0,0))
+    screen.blit(mytext, (767,905))
+        
+def viewStatsMenu():
+    my_font = pygame.font.SysFont('Times new roman', 100)
+    mytext = my_font.render("User Statistics", True, (180,167,214))
+    screen.blit(mytext, (530,100))
+    backBtn = Button(screen, [575,910,450,20])
+    activeBtns = [backBtn]
+    for btn in activeBtns:
+        btn.render(screen, btn.position)
+    my_font = pygame.font.SysFont('Times new roman', 30)
+    mytext = my_font.render("Back", True, (0,0,0))
+    screen.blit(mytext, (767,905))    
+
+def mainSimulator():
+    resetScreen()
+    musicBtn = Button(screen, [0,850,200,100])
+    playBtn = Button(screen, [200,850,200,100])
+    createPlanetBtn = Button(screen, [400,850,200,100])
+    saveBtn = Button(screen, [600,850,250,100])
+    menuBtn = Button(screen, [850,850,250,100])
+
+    activeBtns = [musicBtn, playBtn, saveBtn, menuBtn, createPlanetBtn]
+    for btn in activeBtns:
+        btn.render(screen, btn.position)
+    my_font = pygame.font.SysFont('Times new roman', 30)
+    mytext = my_font.render("Save sim", True, (0,0,0))
+    screen.blit(mytext, (670,850))
+    mytext = my_font.render("Back to menu", True, (0,0,0))
+    screen.blit(mytext, (890,850))
+
+
     for planet in placedobjects:
         planet.determineradius()
         planet.draw(screen)
@@ -138,7 +214,111 @@ def signInScreen():
     mytext = my_font.render("Sign in", True, (0,0,0))
     screen.blit(mytext, (725,815))
 
+def checkUserExists():
+    con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+    cur = con.cursor()
+    search_query = ("""SELECT username
+                    FROM accounts                           
+                    WHERE username = ?""")
+    result = cur.execute(search_query, (usernameText,))
+    try:
+        result.fetchone()[0]
+        con.close()
+    except:
+        return False
+    else:
+        return True
     
+def checkpassword():
+    con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+    cur = con.cursor()
+    search_query = ("""SELECT password
+                        FROM accounts                           
+                        WHERE username = ?""")
+    result = cur.execute(search_query, (usernameText,))
+    dbPassword = result.fetchone()[0]
+    if hashingAlgorithm(passwordText) == int(dbPassword):
+        return True
+    else:
+        return False
+
+def checkIfTeacher():
+    con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+    cur = con.cursor()
+    search_query = ("""SELECT accountType
+                        FROM accounts                           
+                        WHERE username = ?""")
+    result = cur.execute(search_query, (usernameText,))
+    try:
+        fetchedAccountType = result.fetchone()[0]
+        con.close()
+    except:
+        return "None"
+    else:
+        if fetchedAccountType == "T":
+            return True
+        else:
+            return False
+    
+    
+
+def securityverifyscreen():
+    my_font = pygame.font.SysFont('Times new roman', 100)
+    mytext = my_font.render("Answer Security Question", True, (180,167,214))
+    screen.blit(mytext, (360,100))
+    my_font = pygame.font.SysFont('Times new roman', 75)
+    mytext = my_font.render("Question", True, (217, 234, 211))
+    screen.blit(mytext, (850,350))
+    securityBtn = Button(screen, [300,400,450,90], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
+    backBtn = Button(screen, [575,910,450,20])
+
+    signInBtn = Button(screen, [575,800,450,90])
+    activeBtns = [securityBtn, signInBtn, backBtn]
+    for btn in activeBtns:
+        btn.render(screen, btn.position)
+    my_font = pygame.font.SysFont('Times new roman', 30)
+    if securityText == "":
+        mytext = my_font.render("input answer here", True, (0, 0, 0))
+        screen.blit(mytext, (300+5,400+30))
+    else:
+        mytext = my_font.render(securityText, True, (0, 0, 0))
+        screen.blit(mytext, (300+5,400+30))
+
+    mytext = my_font.render("Back", True, (0,0,0))
+    screen.blit(mytext, (767,905))
+    my_font = pygame.font.SysFont('Times new roman', 50)
+
+# here goes the question from database, make sure to try put it in a where
+    con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+    cur = con.cursor()
+    search_query = ("""SELECT question
+                        FROM accounts, securityQuestions                           
+                        WHERE accounts.questionID = securityQuestions.questionID
+                        AND username = ?""")
+    result = cur.execute(search_query, (usernameText,))
+    securityQuestion = result.fetchone()[0]
+
+    con.close()
+    my_font = pygame.font.SysFont('Times new roman', 30)
+    mytext = my_font.render("Question: " + str(securityQuestion), True, (133,143,146))
+    screen.blit(mytext, (850,575))
+
+    mytext = my_font.render("Verify account", True, (0,0,0))
+    screen.blit(mytext, (710,835))           
+
+def verifySecurityInput():
+    con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+    cur = con.cursor()
+    search_query = ("""SELECT questionanswer
+                        FROM accounts                           
+                        WHERE username = ?""")
+    result = cur.execute(search_query, (usernameText,))
+    dbSecurity = result.fetchone()[0]
+    if hashingAlgorithm(securityText) == int(dbSecurity):
+        return True
+    else:
+        return False    
+
 def signUpScreen():
     my_font = pygame.font.SysFont('Times new roman', 100)
     mytext = my_font.render("Sign up", True, (180,167,214))
@@ -194,14 +374,14 @@ def securityQuestionScreen():
     my_font = pygame.font.SysFont('Times new roman', 75)
     mytext = my_font.render("Question", True, (217, 234, 211))
     screen.blit(mytext, (890,350))
-    usernameBtn = Button(screen, [300,400,450,90], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
-    firstBtn = Button(screen, [850,450,100,90], btncolour=(255,242,204), btncolourdark=(223, 210, 171))
-    secondBtn = Button(screen, [1025,450,100,90], btncolour=(234,209,220), btncolourdark=(206, 183, 193))
+    securityBtn = Button(screen, [300,400,450,90], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
+    firstBtn = Button(screen, [850,450,100,90], btncolour=(255,242,244), btncolourdark=(206, 183, 213))
+    secondBtn = Button(screen, [1025,450,100,90], btncolour=(255,242,204), btncolourdark=(223, 210, 171))
     thirdBtn = Button(screen, [1200,450,100,90], btncolour=(234,209,220), btncolourdark=(206, 183, 193))
     backBtn = Button(screen, [575,910,450,20])
     
     signInBtn = Button(screen, [575,800,450,90])
-    activeBtns = [usernameBtn, firstBtn, secondBtn, thirdBtn, signInBtn, backBtn]
+    activeBtns = [securityBtn, firstBtn, secondBtn, thirdBtn, signInBtn, backBtn]
     for btn in activeBtns:
         btn.render(screen, btn.position)
     my_font = pygame.font.SysFont('Times new roman', 30)
@@ -222,8 +402,20 @@ def securityQuestionScreen():
     screen.blit(mytext, (1240,450+30))
     my_font = pygame.font.SysFont('Times new roman', 50)
 
-# here goes the question from database
-    mytext = my_font.render("Account type: " + str(securityQuestionID), True, (133,143,146))
+# here goes the question from database, make sure to try put it in a where
+    con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+    cur = con.cursor()
+    result = cur.execute("""
+                    SELECT *
+                    FROM securityQuestions;
+                        """)
+    if securityQuestionID != "":
+        securityQuestion = result.fetchall()[int(securityQuestionID-1)][1]
+    else:
+        securityQuestion = ""
+    con.close()
+    my_font = pygame.font.SysFont('Times new roman', 30)
+    mytext = my_font.render("Question: " + str(securityQuestion), True, (133,143,146))
     screen.blit(mytext, (850,575))
 
     mytext = my_font.render("Create account", True, (0,0,0))
@@ -249,7 +441,7 @@ def hashingAlgorithm(textToHash):
     return totalValue
 
 def newAccountDB():
-    con = sqlite3.connect("simulatorDB.db")
+    con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
     cur = con.cursor()
     result = cur.execute("""
                     SELECT *
@@ -257,24 +449,57 @@ def newAccountDB():
                     ORDER BY accountID DESC;
                         """)
     g = int(result.fetchone()[0]) + 1
-    if accountType == "Student":
+    if accountType != "Teacher":
         securityQuestionID = ""
-        securityText = ""
+        securityTextHash = ""
+    else:
+        securityTextHash = hashingAlgorithm(securityText)
+        #lookhere
+        securityQuestionID = 1
     insert_data_query = """
-    INSERT INTO accounts VALUES(""" + str(g) + """, " """ + usernameText + """ ", " """ + str(hashingAlgorithm(passwordText)) + """ ", " """ + accountType[0] + """ ", " """ + securityText + """ ", " """ + str(securityQuestionID) + """ ");
+    INSERT INTO accounts VALUES(?, ?, ?, ?, ?, ?);
     """
-    cur.execute(insert_data_query)
+    cur.execute(insert_data_query, (str(g), usernameText, str(hashingAlgorithm(passwordText)), accountType[0],  str(securityTextHash), str(securityQuestionID),))
     con.commit()
     
     insert_data_query = """
-    INSERT INTO accountstats VALUES(""" + str(g) + """, 0, 0);
+    INSERT INTO accountstats VALUES(?, 0, 0);
     """
-    cur.execute(insert_data_query)
+    cur.execute(insert_data_query, (str(g),))
     con.commit()
 
     con.close()
                          
+def saveSimToFile():
+    f = open(r"C:\Users\alanj\Downloads\NEA\save1.txt", "a")
+    for i in range(len(placedobjects)):
+        f.write(placedobjects[i].position + "\n")
+        f.write(placedobjects[i].radius + "\n")
+        f.write(placedobjects[i].colour + "\n")
+        f.write(placedobjects[i].speed + "\n")
+        f.write(placedobjects[i].angle + "\n")
+        f.write(placedobjects[i].angleincrement + "\n")
+        f.write(placedobjects[i].mass + "\n")
+        f.write("\n")
+    f.close()
 
+def loadSimFromFile():
+    placedobjects = []
+    f = open(r"C:\Users\alanj\Downloads\NEA\save1.txt", "r")
+    while True:
+        position = f.readline()
+        radius = f.readline()
+        colour = f.readline()
+        speed = f.readline()
+        angle = f.readline()
+        angleincrement = f.readline()
+        mass = f.readline()
+        planet = Planet(position, radius, colour, speed, angle, angleincrement, mass)
+        placedobjects.append(planet)
+        if f.readline() != "\n":
+            break
+    f.close()
+                                
 
 class Button:
     def __init__(self, surface, position, btncolour = (208,224,227), btncolourdark = (133,143,146)):
@@ -373,7 +598,7 @@ resetScreen()
 
 
 mixer.init()
-mixer.music.load(r"C:\Users\alanj\Downloads\NEA\above_story.ogg")
+mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
 mixer.music.set_volume(0.5)
 mixer.music.play(1)
 
@@ -417,15 +642,43 @@ while True:
                 else:
                     logInPassword = False    
                 if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90:
-                    main_appear = True
-                    login_appear = False
+                    if checkUserExists():
+                        if checkpassword():
+                            if checkIfTeacher():
+                                securityVerifyAppear = True
+                                login_appear = False
+                            else:
+                                mainmenu2appear = True
+                                login_appear = False
+                        else:
+                            print("pass fail")
+                    else:
+                        print("user fale")
+
                     resetScreen()
                 elif 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
                     mainmenuappear = True
                     login_appear = False
                     resetScreen()
             
-
+            elif securityVerifyAppear:
+                if 300 <= mouse[0] <= 300+450 and 400 <= mouse[1] <= 400+90:
+                    securityText = ""
+                    securityVerifyInput = True
+                else:
+                    securityVerifyInput = False    
+                
+                if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90 and len(passwordText) > 4 and len(usernameText) > 4:
+                        if verifySecurityInput():
+                            mainmenu2appear = True
+                            securityVerifyAppear = False
+                elif 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
+                    mainmenuappear = True
+                    securityVerifyAppear = False
+                    resetScreen()
+                #careful of this particular reset
+                resetScreen()
+                            
             elif signup_appear:
                 if 300 <= mouse[0] <= 300+450 and 400 <= mouse[1] <= 400+90:
                     usernameText = ""
@@ -443,10 +696,10 @@ while True:
                 elif 1150 <= mouse[0] <= 1150+200 and 450 <= mouse[1] <= 450+90:
                     accountType = "Teacher"    
                 
-                if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90 and len(passwordText) > 4 and len(usernameText) > 4:
+                if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90 and len(passwordText) > 4 and len(usernameText) > 4 and not checkUserExists():
                     if accountType == "Student":
                         newAccountDB()
-                        main_appear = True
+                        mainmenu2appear = True
                         signup_appear = False
                     elif accountType == "Teacher":
                         signup_appear = False
@@ -465,17 +718,17 @@ while True:
                 else:
                     securityCreateInput = False    
                 
-                if 850 <= mouse[0] <= 850+200 and 450 <= mouse[1] <= 450+90:
+                if 850 <= mouse[0] <= 850+100 and 450 <= mouse[1] <= 450+90:
                     securityQuestionID = 1
-                elif 1025 <= mouse[0] <= 1025+200 and 450 <= mouse[1] <= 450+90:
+                elif 1025 <= mouse[0] <= 1025+100 and 450 <= mouse[1] <= 450+90:
                     securityQuestionID = 2   
-                elif 1200 <= mouse[0] <= 1200+200 and 450 <= mouse[1] <= 450+90:
+                elif 1200 <= mouse[0] <= 1200+100 and 450 <= mouse[1] <= 450+90:
                     securityQuestionID = 3   
                 
                 if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90 and len(passwordText) > 4 and len(usernameText) > 4:
-                        newAccountDB()
-                        main_appear = True
-                        securityCreateAppear = False
+                    newAccountDB()
+                    mainmenu2appear = True
+                    securityCreateAppear = False
                 elif 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
                     mainmenuappear = True
                     securityCreateAppear = False
@@ -483,9 +736,68 @@ while True:
                 #careful of this particular reset
                 resetScreen()
 
+            elif mainmenu2appear:
+               
+                if 600 <= mouse[0] <= 600+450 and 400 <= mouse[1] <= 400+90:
+                    main_appear = True
+                    mainmenu2appear = False
+                    resetScreen()
+                if 600 <= mouse[0] <= 600+450 and 600 <= mouse[1] <= 600+90:
+                    loadSims_appear = True
+                    mainmenu2appear = False
+                    resetScreen()
+                if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90:
+                    viewStudentStats = True
+                    mainmenu2appear = False
+                    resetScreen()
+
+            elif loadSims_appear:
+                    if 400 <= mouse[0] <= 400+250 and 400<= mouse[1] <= 400+90:
+                        main_appear = True
+                        loadSims_appear = False
+                        resetScreen()
+                    elif 400 <= mouse[0] <= 400+250 and 600<= mouse[1] <= 600+90:
+                        main_appear = True
+                        loadSims_appear = False
+                        resetScreen()        
+                    elif 400 <= mouse[0] <= 400+250 and 800<= mouse[1] <= 800+90:
+                        main_appear = True
+                        loadSims_appear = False
+                        resetScreen()        
+                    elif 1000 <= mouse[0] <= 1000+250 and 400<= mouse[1] <= 400+90:
+                        main_appear = True
+                        loadSims_appear = False
+                        resetScreen()        
+                    elif 1000 <= mouse[0] <= 1000+250 and 600<= mouse[1] <= 600+90:
+                        main_appear = True
+                        loadSims_appear = False
+                        resetScreen()        
+                    elif 1000 <= mouse[0] <= 1000+250 and 800<= mouse[1] <= 800+90:
+                        main_appear = True
+                        loadSims_appear = False
+                        resetScreen()                            
+                    elif 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
+                        mainmenu2appear = True
+                        loadSims_appear = False
+                        resetScreen()
+            elif viewStudentStats:
+                    if 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
+                        mainmenu2appear = True
+                        viewStudentStats = False
+                        resetScreen()                
+
             elif main_appear == True:
-                #play button
                 if 0 <= mouse[0] <= 0+200 and 850 <= mouse[1] <= 850+100:
+                    resetScreen()
+                    if musicmuted == False:
+                        musicmuted = True
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
+                        musicmuted = False
+
+                #play button
+                elif 200 <= mouse[0] <= 200+200 and 850 <= mouse[1] <= 850+100:
                     resetScreen()
                     if playing == False:
                         playing = True
@@ -493,7 +805,7 @@ while True:
                         playing = False
 
                 #toggle planet creation    
-                elif 1000 <= mouse[0] <= 1000+100 and 850 <= mouse[1] <= 850+100:
+                elif 400 <= mouse[0] <= 400+200 and 850 <= mouse[1] <= 850+100:
                     resetScreen()
                     if planetcreate == False:
                         planetcreate = True
@@ -505,35 +817,55 @@ while True:
                 elif mouse[0]<1100 and objectMenuAppear == True:
                     objectMenuAppear = False
                 #change later to display stats as travel
-                elif not planetcreate and playing == False and objectMenuAppear == False:
+                elif not planetcreate and playing == False and objectMenuAppear == False and mouse[1] < 850:
                     for checkedplanet in range(len(placedobjects)):
                         if placedobjects[checkedplanet].checkclick():
                             objectMenuAppear = True
                             break
-                    print(checkedplanet)
+                
+                elif 850 <= mouse[0] <= 850+200 and 850 <= mouse[1] <= 850+100:
+                    playing = False
+                    objectMenuAppear = False
+                    mainmenu2appear = True
+                    main_appear = False
+                    resetScreen()
+
                     
-                #check
+                #checkwhatthehell
 
                 if objectMenuAppear == True:
                     if 1200 <= mouse[0] <= 1200+200 and 250 <= mouse[1] <= 250+50:
                         enterMass = str(placedobjects[checkedplanet].mass)
                         enteringMass = True
                     elif enteringMass == True:
-                        placedobjects[checkedplanet].mass = int(enterMass)
+                    # putting it to 0 could be an alright idea, and good it works, just put some thought to mass
+                        try:
+                            placedobjects[checkedplanet].mass = int(enterMass)#
+                        except:
+                            enterMass = 0
+                            placedobjects[checkedplanet].mass = int(enterMass)
                         enteringMass = False
 
                     if 1200 <= mouse[0] <= 1200+200 and 400 <= mouse[1] <= 400+50:
                         enterSpeed = str(placedobjects[checkedplanet].speed)
                         enteringSpeed = True
                     elif enteringSpeed == True:
-                        placedobjects[checkedplanet].speed = int(enterSpeed)
+                        try:
+                            placedobjects[checkedplanet].speed = int(enterSpeed)#
+                        except:
+                            enterSpeed = 0
+                            placedobjects[checkedplanet].speed = int(enterSpeed)
                         enteringSpeed = False
 
                     if 1200 <= mouse[0] <= 1200+200 and 550 <= mouse[1] <= 550+50:
                         enterAngle = str(placedobjects[checkedplanet].angle)
                         enteringAngle = True
                     elif enteringAngle == True:
-                        placedobjects[checkedplanet].angle = int(enterAngle)
+                        try:
+                            placedobjects[checkedplanet].angle = int(enterAngle)#
+                        except:
+                            enterAngle = 0
+                            placedobjects[checkedplanet].angle = int(enterAngle)
                         enteringAngle = False
                     
 
@@ -585,8 +917,17 @@ while True:
                     mytext = my_font.render("answer too long", True, (180,167,214))
                     screen.blit(mytext, (575,500))
                 else:
-                    securityText += event.unicode       
+                    securityText += event.unicode
 
+            if securityVerifyInput:
+                if event.key == pygame.K_BACKSPACE:
+                    securityText = securityText[:-1]
+                elif len(securityText)>=30:
+                    my_font = pygame.font.SysFont('Times new roman', 50)
+                    mytext = my_font.render("answer too long", True, (180,167,214))
+                    screen.blit(mytext, (575,500))
+                else:
+                    securityText += event.unicode
 
             if enteringMass == True:
                 if event.key == pygame.K_BACKSPACE:
@@ -612,13 +953,27 @@ while True:
     if main_appear == True:
         mainSimulator()
 
-        my_font = pygame.font.SysFont('Times new roman', 25)                  
+        my_font = pygame.font.SysFont('Times new roman', 25) 
+
+        if musicmuted:
+            mytext = my_font.render("unmute music", True, (0, 0, 0))
+            screen.blit(mytext, (20,850))  
+        else:
+            mytext = my_font.render("mute music", True, (0, 0, 0))
+            screen.blit(mytext, (30,850))                           
         if planetcreate:
             mytext = my_font.render("planet on", True, (0, 0, 0))
-            screen.blit(mytext, (1000,850))
+            screen.blit(mytext, (450,850))
         else:
             mytext = my_font.render("planet off", True, (0, 0, 0))
-            screen.blit(mytext, (1000,850))
+            screen.blit(mytext, (450,850))
+        
+        pygame.draw.rect(screen, (133,143,146), (1100, 850, 500, 100))
+        mytext = my_font.render("click on a planet while paused", True, (0, 0, 0))
+        screen.blit(mytext, (1100,850))
+        mytext = my_font.render("and not placing to edit", True, (0, 0, 0))
+        screen.blit(mytext, (1100,90))
+
         if objectMenuAppear:
             objectMenu(checkedplanet)
             
@@ -626,7 +981,7 @@ while True:
 
             resetScreen()
             mytext = my_font.render("playing", True, (0, 0, 0))
-            screen.blit(mytext, (50,850))
+            screen.blit(mytext, (250,850))
 
             for i in range(len(placedobjects)):
                 #to be removed some point ofc
@@ -638,17 +993,18 @@ while True:
                 #heres a thing
                 for j in range(len(placedobjects)):
                     if i != j:
-                        placedobjects[i].movevectors(placedobjects[j])
-            
+                        placedobjects[i].movevectors(placedobjects[j])        
 
-            pygame.display.update()
-           
+            pygame.display.update() 
                               
         else:
             mytext = my_font.render("paused", True, (0, 0, 0))
-            screen.blit(mytext, (50,850))
+            screen.blit(mytext, (250,850))
     elif login_appear == True:
         signInScreen()
+    
+    elif securityVerifyAppear:
+        securityverifyscreen()
 
     elif signup_appear == True:
         signUpScreen()
@@ -656,5 +1012,13 @@ while True:
     elif securityCreateAppear:
         securityQuestionScreen()
 
+    elif mainmenu2appear:
+        mainMenuLoggedIn()
+
+    elif loadSims_appear:
+        loadSimsMenu()
+    
+    elif viewStudentStats:
+        viewStatsMenu()
         
     pygame.display.update()
