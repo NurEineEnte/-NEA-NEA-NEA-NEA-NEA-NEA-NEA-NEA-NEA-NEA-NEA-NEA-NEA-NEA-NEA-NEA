@@ -170,11 +170,11 @@ def objectMenu(body):
     mytext = my_font.render("Angle (bearing)", True, (0,0,0))
     screen.blit(mytext, (1155,490))
     my_font = pygame.font.SysFont('Times new roman', 30)
-    mytext = my_font.render(str(placedobjects[body].mass), True, (0, 0, 0))
+    mytext = my_font.render(str(enterMass), True, (0, 0, 0))
     screen.blit(mytext, (1200+5,257))
-    mytext = my_font.render(str(placedobjects[body].speed), True, (0, 0, 0))
+    mytext = my_font.render(str(enterSpeed), True, (0, 0, 0))
     screen.blit(mytext, (1200+5,407))
-    mytext = my_font.render(str(placedobjects[body].angle), True, (0, 0, 0))
+    mytext = my_font.render(str(enterAngle), True, (0, 0, 0))
     screen.blit(mytext, (1200+5,557))
     mytext = my_font.render("x 10^8 kg", True, (0, 0, 0))
     screen.blit(mytext, (1400+5,257))
@@ -516,6 +516,7 @@ class Button:
             pygame.draw.rect(screen,self.colour,self.position)
         else:
             pygame.draw.rect(screen,self.colourdark,self.position)
+
 class Planet:
     def __init__(self, position, radius, colour, speed, angle, angleincrement, mass):
         self.position = position
@@ -598,7 +599,7 @@ resetScreen()
 
 
 mixer.init()
-mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+mixer.music.load(r"C:\Users\alanj\Downloads\NEA\above_story.ogg")
 mixer.music.set_volume(0.5)
 mixer.music.play(1)
 
@@ -627,6 +628,8 @@ while True:
                     resetScreen()
                 if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90:
                     main_appear = True
+                    mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                    mixer.music.play(1)
                     mainmenuappear = False
                     resetScreen()
 
@@ -742,6 +745,8 @@ while True:
                     main_appear = True
                     mainmenu2appear = False
                     resetScreen()
+                    mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                    mixer.music.play(1)
                 if 600 <= mouse[0] <= 600+450 and 600 <= mouse[1] <= 600+90:
                     loadSims_appear = True
                     mainmenu2appear = False
@@ -756,26 +761,38 @@ while True:
                         main_appear = True
                         loadSims_appear = False
                         resetScreen()
+                        mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                        mixer.music.play(1)
                     elif 400 <= mouse[0] <= 400+250 and 600<= mouse[1] <= 600+90:
                         main_appear = True
                         loadSims_appear = False
-                        resetScreen()        
+                        resetScreen()
+                        mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                        mixer.music.play(1)        
                     elif 400 <= mouse[0] <= 400+250 and 800<= mouse[1] <= 800+90:
                         main_appear = True
                         loadSims_appear = False
-                        resetScreen()        
+                        resetScreen()                        
+                        mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                        mixer.music.play(1)        
                     elif 1000 <= mouse[0] <= 1000+250 and 400<= mouse[1] <= 400+90:
                         main_appear = True
                         loadSims_appear = False
-                        resetScreen()        
+                        resetScreen()                        
+                        mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                        mixer.music.play(1)        
                     elif 1000 <= mouse[0] <= 1000+250 and 600<= mouse[1] <= 600+90:
                         main_appear = True
                         loadSims_appear = False
-                        resetScreen()        
+                        resetScreen()
+                        mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                        mixer.music.play(1)        
                     elif 1000 <= mouse[0] <= 1000+250 and 800<= mouse[1] <= 800+90:
                         main_appear = True
                         loadSims_appear = False
-                        resetScreen()                            
+                        resetScreen()
+                        mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                        mixer.music.play(1)                            
                     elif 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
                         mainmenu2appear = True
                         loadSims_appear = False
@@ -820,6 +837,9 @@ while True:
                 elif not planetcreate and playing == False and objectMenuAppear == False and mouse[1] < 850:
                     for checkedplanet in range(len(placedobjects)):
                         if placedobjects[checkedplanet].checkclick():
+                            enterMass = placedobjects[checkedplanet].mass
+                            enterAngle = placedobjects[checkedplanet].angle
+                            enterSpeed = placedobjects[checkedplanet].speed
                             objectMenuAppear = True
                             break
                 
@@ -829,6 +849,8 @@ while True:
                     mainmenu2appear = True
                     main_appear = False
                     resetScreen()
+                    mixer.music.load(r"C:\Users\alanj\Downloads\NEA\above_story.ogg")
+                    mixer.music.play(1)
 
                     
                 #checkwhatthehell
