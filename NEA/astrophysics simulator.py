@@ -5,6 +5,8 @@ import math
 from ctypes import windll
 import sys
 import sqlite3
+import os
+import ast
 windll.shcore.SetProcessDpiAwareness(1)
 
 pygame.init()
@@ -36,6 +38,7 @@ signUpPassword = False
 viewStudentStats = False
 loadSims_appear = False
 objectMenuAppear = False
+createSaveAppear = False
 accountType = "None"
 usernameText = ""
 passwordText = ""
@@ -132,10 +135,13 @@ def mainSimulator():
     musicBtn = Button(screen, [0,850,200,100])
     playBtn = Button(screen, [200,850,200,100])
     createPlanetBtn = Button(screen, [400,850,200,100])
-    saveBtn = Button(screen, [600,850,250,100])
     menuBtn = Button(screen, [850,850,250,100])
 
-    activeBtns = [musicBtn, playBtn, saveBtn, menuBtn, createPlanetBtn]
+    activeBtns = [musicBtn, playBtn, menuBtn, createPlanetBtn]
+    
+    if not createSaveAppear:
+        saveBtn = Button(screen, [600,850,250,100])
+        activeBtns.append(saveBtn)
     for btn in activeBtns:
         btn.render(screen, btn.position)
     my_font = pygame.font.SysFont('Times new roman', 30)
@@ -182,6 +188,30 @@ def objectMenu(body):
     screen.blit(mytext, (1400+5,407))
     mytext = my_font.render("°", True, (0, 0, 0))
     screen.blit(mytext, (1400+5,547))
+
+def createSaveMenu():
+    slot1Btn = Button(screen, [600,850,83,50])
+    slot2Btn = Button(screen, [600,900,83,50])
+    slot3Btn = Button(screen, [683.3,850,83,50])
+    slot4Btn = Button(screen, [683.3,900,83,50])
+    slot5Btn = Button(screen, [766.6,850,84,50])
+    slot6Btn = Button(screen, [766.6,900,84,50])
+    activeBtns = [slot1Btn, slot2Btn, slot3Btn, slot4Btn, slot5Btn, slot6Btn]
+    for btn in activeBtns:
+        btn.render(screen, btn.position)
+    my_font = pygame.font.SysFont('Times new roman', 30)
+    mytext = my_font.render("1", True, (0,0,0))
+    screen.blit(mytext, (635,850))
+    mytext = my_font.render("2", True, (0,0,0))
+    screen.blit(mytext, (635,900))
+    mytext = my_font.render("3", True, (0,0,0))
+    screen.blit(mytext, (718.6,850))
+    mytext = my_font.render("4", True, (0,0,0))
+    screen.blit(mytext, (718.5,900))
+    mytext = my_font.render("5", True, (0,0,0))
+    screen.blit(mytext, (801,850))
+    mytext = my_font.render("6", True, (0,0,0))
+    screen.blit(mytext, (801,900))
 
 def signInScreen():
     my_font = pygame.font.SysFont('Times new roman', 100)
@@ -470,35 +500,46 @@ def newAccountDB():
 
     con.close()
                          
-def saveSimToFile():
-    f = open(r"C:\Users\alanj\Downloads\NEA\save1.txt", "a")
+def saveSimToFile(saveslot):
+    path = str(saveslot) + ".txt"
+    if os.path.exists(r"C:\Users\alanj\Downloads\NEA\save" + path):
+        os.remove(r"C:\Users\alanj\Downloads\NEA\save" + path)
+
+    f = open(r"C:\Users\alanj\Downloads\NEA\save" + path, "a")
     for i in range(len(placedobjects)):
-        f.write(placedobjects[i].position + "\n")
-        f.write(placedobjects[i].radius + "\n")
-        f.write(placedobjects[i].colour + "\n")
-        f.write(placedobjects[i].speed + "\n")
-        f.write(placedobjects[i].angle + "\n")
-        f.write(placedobjects[i].angleincrement + "\n")
-        f.write(placedobjects[i].mass + "\n")
+        f.write(str(placedobjects[i].position) + "\n")
+        f.write(str(placedobjects[i].radius) + "\n")
+        f.write(str(placedobjects[i].colour) + "\n")
+        f.write(str(placedobjects[i].speed) + "\n")
+        f.write(str(placedobjects[i].angle) + "\n")
+        f.write(str(placedobjects[i].angleincrement) + "\n")
+        f.write(str(placedobjects[i].mass) + "\n")
         f.write("\n")
     f.close()
 
-def loadSimFromFile():
+def loadSimFromFile(saveslot):
     placedobjects = []
-    f = open(r"C:\Users\alanj\Downloads\NEA\save1.txt", "r")
+    path = str(saveslot) + ".txt"
+    f = open(r"C:\Users\alanj\Downloads\NEA\save" + path, "r")
     while True:
-        position = f.readline()
-        radius = f.readline()
-        colour = f.readline()
-        speed = f.readline()
-        angle = f.readline()
-        angleincrement = f.readline()
-        mass = f.readline()
+        position = f.readline().strip()
+        if position == "":
+            break
+        else:
+            position = ast.literal_eval(position)
+
+        radius = float(f.readline().strip())
+        colour = ast.literal_eval(f.readline().strip())
+        print(type(colour))
+        speed = float(f.readline().strip())
+        angle = float(f.readline().strip())
+        angleincrement = float(f.readline().strip())
+        mass = float(f.readline().strip())
+        f.readline()
         planet = Planet(position, radius, colour, speed, angle, angleincrement, mass)
         placedobjects.append(planet)
-        if f.readline() != "\n":
-            break
     f.close()
+    return placedobjects
                                 
 
 class Button:
@@ -526,7 +567,6 @@ class Planet:
         self.colour = colour
         self.angleincrement = angleincrement
         self.mass = mass
-        print(self.position)
     def move(self):
         self.position = (self.position[0]+5, self.position[1])
     def incrementangle(self):
@@ -758,36 +798,42 @@ while True:
 
             elif loadSims_appear:
                     if 400 <= mouse[0] <= 400+250 and 400<= mouse[1] <= 400+90:
+                        placedobjects = loadSimFromFile(1)
                         main_appear = True
                         loadSims_appear = False
                         resetScreen()
                         mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
                         mixer.music.play(1)
                     elif 400 <= mouse[0] <= 400+250 and 600<= mouse[1] <= 600+90:
+                        placedobjects = loadSimFromFile(2)
                         main_appear = True
                         loadSims_appear = False
                         resetScreen()
                         mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
                         mixer.music.play(1)        
                     elif 400 <= mouse[0] <= 400+250 and 800<= mouse[1] <= 800+90:
+                        placedobjects = loadSimFromFile(3)
                         main_appear = True
                         loadSims_appear = False
                         resetScreen()                        
                         mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
                         mixer.music.play(1)        
                     elif 1000 <= mouse[0] <= 1000+250 and 400<= mouse[1] <= 400+90:
+                        placedobjects = loadSimFromFile(4)
                         main_appear = True
                         loadSims_appear = False
                         resetScreen()                        
                         mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
                         mixer.music.play(1)        
                     elif 1000 <= mouse[0] <= 1000+250 and 600<= mouse[1] <= 600+90:
+                        placedobjects = loadSimFromFile(5)
                         main_appear = True
                         loadSims_appear = False
                         resetScreen()
                         mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
                         mixer.music.play(1)        
                     elif 1000 <= mouse[0] <= 1000+250 and 800<= mouse[1] <= 800+90:
+                        placedobjects = loadSimFromFile(6)
                         main_appear = True
                         loadSims_appear = False
                         resetScreen()
@@ -821,18 +867,12 @@ while True:
                     else:
                         playing = False
 
-                #toggle planet creation    
-                elif 400 <= mouse[0] <= 400+200 and 850 <= mouse[1] <= 850+100:
-                    resetScreen()
-                    if planetcreate == False:
-                        planetcreate = True
-                    else:
-                        planetcreate = False
-                elif planetcreate: 
-                    planet = Planet(mouse, 15, (255,204,156), 5, 3, 1, 5)
-                    placedobjects.append(planet)
+
                 elif mouse[0]<1100 and objectMenuAppear == True:
                     objectMenuAppear = False
+                    placedobjects[checkedplanet].mass = float(enterMass)
+                    placedobjects[checkedplanet].angle = float(enterAngle)
+                    placedobjects[checkedplanet].speed = float(enterSpeed)                 
                 #change later to display stats as travel
                 elif not planetcreate and playing == False and objectMenuAppear == False and mouse[1] < 850:
                     for checkedplanet in range(len(placedobjects)):
@@ -842,8 +882,45 @@ while True:
                             enterSpeed = placedobjects[checkedplanet].speed
                             objectMenuAppear = True
                             break
-                
-                elif 850 <= mouse[0] <= 850+200 and 850 <= mouse[1] <= 850+100:
+
+                elif 600 <= mouse[0] <= 600+250 and 850 <= mouse[1] <= 850+100:
+                    if createSaveAppear:
+                        if 600 <= mouse[0] <= 600+83 and 850 <= mouse[1] <= 850+50:
+                            saveSimToFile(1)
+                        elif 600 <= mouse[0] <= 600+83 and 900 <= mouse[1] <= 900+50:
+                            saveSimToFile(2)
+                        elif 683 <= mouse[0] <= 683+83 and 850 <= mouse[1] <= 850+50:
+                            saveSimToFile(3)
+                        elif 683 <= mouse[0] <= 683+83 and 900 <= mouse[1] <= 900+50:
+                            saveSimToFile(4)
+                        elif 766 <= mouse[0] <= 766+84 and 850 <= mouse[1] <= 850+50:
+                            saveSimToFile(5)
+                        elif 766 <= mouse[0] <= 766+84 and 900 <= mouse[1] <= 900+50:
+                            saveSimToFile(6)
+                        my_font = pygame.font.SysFont('Times new roman', 30)
+                        mytext = my_font.render("Saved to file", True, (1, 200, 50))
+                        screen.blit(mytext, (655,800))
+                        pygame.display.update()
+                        time.sleep(.5)
+                        
+                        createSaveAppear = False
+                    else:
+                        planetcreate = False
+                        createSaveAppear = True
+                        resetScreen()
+                        
+                                #toggle planet creation    
+                elif 400 <= mouse[0] <= 400+200 and 850 <= mouse[1] <= 850+100:
+                    resetScreen()
+                    if planetcreate == False:
+                        planetcreate = True
+                    else:
+                        planetcreate = False
+                elif planetcreate: 
+                    planet = Planet(mouse, 15, (255,204,156), 5, 3, 1, 5)
+                    placedobjects.append(planet)    
+                                
+                elif 850 <= mouse[0] <= 850+250 and 850 <= mouse[1] <= 850+100:
                     playing = False
                     objectMenuAppear = False
                     mainmenu2appear = True
@@ -862,10 +939,10 @@ while True:
                     elif enteringMass == True:
                     # putting it to 0 could be an alright idea, and good it works, just put some thought to mass
                         try:
-                            placedobjects[checkedplanet].mass = int(enterMass)#
+                            placedobjects[checkedplanet].mass = float(enterMass)#
                         except:
                             enterMass = 0
-                            placedobjects[checkedplanet].mass = int(enterMass)
+                            placedobjects[checkedplanet].mass = float(enterMass)
                         enteringMass = False
 
                     if 1200 <= mouse[0] <= 1200+200 and 400 <= mouse[1] <= 400+50:
@@ -873,10 +950,10 @@ while True:
                         enteringSpeed = True
                     elif enteringSpeed == True:
                         try:
-                            placedobjects[checkedplanet].speed = int(enterSpeed)#
+                            placedobjects[checkedplanet].speed = float(enterSpeed)#
                         except:
                             enterSpeed = 0
-                            placedobjects[checkedplanet].speed = int(enterSpeed)
+                            placedobjects[checkedplanet].speed = float(enterSpeed)
                         enteringSpeed = False
 
                     if 1200 <= mouse[0] <= 1200+200 and 550 <= mouse[1] <= 550+50:
@@ -884,10 +961,10 @@ while True:
                         enteringAngle = True
                     elif enteringAngle == True:
                         try:
-                            placedobjects[checkedplanet].angle = int(enterAngle)#
+                            placedobjects[checkedplanet].angle = float(enterAngle)#
                         except:
                             enterAngle = 0
-                            placedobjects[checkedplanet].angle = int(enterAngle)
+                            placedobjects[checkedplanet].angle = float(enterAngle)
                         enteringAngle = False
                     
 
@@ -998,6 +1075,9 @@ while True:
 
         if objectMenuAppear:
             objectMenu(checkedplanet)
+        
+        if createSaveAppear:
+            createSaveMenu()
             
         if playing:
 
