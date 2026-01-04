@@ -7,6 +7,7 @@ import sys
 import sqlite3
 import os
 import ast
+import random
 windll.shcore.SetProcessDpiAwareness(1)
 
 pygame.init()
@@ -607,7 +608,12 @@ class Planet:
         distanceSquared = self.dx ** 2 + self.dy ** 2
         distance = math.sqrt(self.dx**2+self.dy**2)
         force = 0.001*0.00000000006674 * self.mass* 100000000 * otherBody.mass * 100000000 / distanceSquared
+
         scaleFactor = force / distance
+
+        acceleration = force / self.mass
+        self.speed += acceleration
+
         
         self.position = (self.position[0] - scaleFactor*self.dx, self.position[1] - scaleFactor*self.dy)
 
@@ -640,7 +646,7 @@ resetScreen()
 
 mixer.init()
 mixer.music.load(r"C:\Users\alanj\Downloads\NEA\above_story.ogg")
-mixer.music.set_volume(0.5)
+mixer.music.set_volume(1)
 mixer.music.play(1)
 
 
@@ -917,12 +923,13 @@ while True:
                     else:
                         planetcreate = False
                 elif planetcreate: 
-                    planet = Planet(mouse, 15, (255,204,156), 5, 3, 1, 5)
+                    planet = Planet(mouse, 15, (random.randint(0,255), random.randint(0,255), random.randint(0,255)), 5, 3, 1, 5)
                     placedobjects.append(planet)    
                                 
                 elif 850 <= mouse[0] <= 850+250 and 850 <= mouse[1] <= 850+100:
                     playing = False
                     objectMenuAppear = False
+                    planetcreate = False
                     mainmenu2appear = True
                     main_appear = False
                     resetScreen()
@@ -1090,12 +1097,13 @@ while True:
                 placedobjects[i].incrementangle()
                 placedobjects[i].anglemove()
                 #code could be more optimised if below dealt with
-                placedobjects[i].draw(screen)
+
 
                 #heres a thing
                 for j in range(len(placedobjects)):
                     if i != j:
-                        placedobjects[i].movevectors(placedobjects[j])        
+                        placedobjects[i].movevectors(placedobjects[j])  
+                placedobjects[i].draw(screen)      
 
             pygame.display.update() 
                               
