@@ -2,3 +2,4 @@
 and then add the calculations for physics using my calculations
 
 in my security questions sql loading i may want to change it to a WHERE but i currently see no issue
+again consider if mass should default to 0, see no issue
