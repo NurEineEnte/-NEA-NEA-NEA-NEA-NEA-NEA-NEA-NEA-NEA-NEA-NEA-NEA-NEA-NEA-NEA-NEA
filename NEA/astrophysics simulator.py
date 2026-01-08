@@ -51,8 +51,12 @@ securityVerifyAppear = False
 securityCreateInput = False
 securityVerifyInput = False
 main_appear = False
+#music mute control
 musicmuted = False
+#determines if planets or stars should be created when clicked
 planetcreate = False
+starcreate = False
+#plays/paused simulation
 playing = False
 #controls whether user is in the process of an input
 logInUsername = False
@@ -189,10 +193,11 @@ def mainSimulator():
     #define buttons
     musicBtn = Button(screen, [0,850,200,100])
     playBtn = Button(screen, [200,850,200,100])
-    createPlanetBtn = Button(screen, [400,850,200,100])
+    createPlanetBtn = Button(screen, [400,850,100,100])
+    createStarBtn = Button(screen, [500,850,100,100])
     menuBtn = Button(screen, [850,850,250,100])
 
-    activeBtns = [musicBtn, playBtn, menuBtn, createPlanetBtn]
+    activeBtns = [musicBtn, playBtn, menuBtn, createPlanetBtn, createStarBtn]
     
     #checks that the create save button has not been pressed before seeing if it should define and draw the larger save button
     if not createSaveAppear:
@@ -409,7 +414,6 @@ def securityverifyscreen():
     screen.blit(mytext, (767,905))
     my_font = pygame.font.SysFont('Times new roman', 50)
 
-# here goes the question from database, make sure to try put it in a where
     con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
     cur = con.cursor()
     search_query = ("""SELECT question
@@ -667,21 +671,17 @@ class Planet:
 
     # i ought to remove one of these i suppose
     def anglemove(self):
-        while True:
-            if self.angle >= 360:
-                self.angle -= 360
-            elif self.angle < 0:
-                self.angle +=360
-            else:
-                break
-        if self.angle >= 0:
-            self.position = (self.position[0]+self.speed*math.sin(math.radians(self.angle)), self.position[1]-self.speed*math.cos(math.radians(self.angle)))
-        elif self.angle >= 90:
-            self.position = (self.position[0]-self.speed*math.cos(math.radians(self.angle)), self.position[1]-self.speed*math.sin(math.radians(self.angle)))   
-        elif self.angle >= 180:
-            self.position = (self.position[0]+self.speed*math.cos(math.radians(self.angle)), self.position[1]+self.speed*math.sin(math.radians(self.angle)))    
-        else:
-            self.position = (self.position[0]-self.speed*math.sin(math.radians(self.angle)), self.position[1]+self.speed*math.cos(math.radians(self.angle)))
+        self.angle %= 360
+        self.position = (self.position[0]+self.speed*math.sin(math.radians(self.angle)), self.position[1]-self.speed*math.cos(math.radians(self.angle)))
+        # if self.angle >= 0:
+        #     self.position = (self.position[0]+self.speed*math.sin(math.radians(self.angle)), self.position[1]-self.speed*math.cos(math.radians(self.angle)))
+        # elif self.angle >= 90:
+        #     self.position = (self.position[0]-self.speed*math.cos(math.radians(self.angle)), self.position[1]-self.speed*math.sin(math.radians(self.angle)))   
+        # elif self.angle >= 180:
+        #     self.position = (self.position[0]+self.speed*math.cos(math.radians(self.angle)), self.position[1]+self.speed*math.sin(math.radians(self.angle)))    
+        # else:
+        #     self.position = (self.position[0]-self.speed*math.sin(math.radians(self.angle)), self.position[1]+self.speed*math.cos(math.radians(self.angle)))
+
     #is this really right? maybe remove a 0 from force modifier
     def movevectors(self, otherBody):
         #sort out later, its really inefficient and an eyesore
@@ -693,19 +693,43 @@ class Planet:
         
         # oh hell nah we cooked
 
-        self.dx = self.position[0] - otherBody.position[0]
-        self.dy = self.position[1] - otherBody.position[1]
-        distanceSquared = self.dx ** 2 + self.dy ** 2
-        distance = math.sqrt(self.dx**2+self.dy**2)
-        force = 0.001*0.00000000006674 * self.mass* 100000000 * otherBody.mass * 100000000 / distanceSquared
+        dx = otherBody.position[0] - self.position[0]
+        dy = otherBody.position[1] - self.position[1]
+        distanceSquared = dx ** 2 + dy ** 2
+        distance = math.sqrt(dx**2+dy**2)
+        force = 0.0001*0.00000000006674 * self.mass* 100000000 * otherBody.mass * 100000000 / distanceSquared
 
-        scaleFactor = force / distance
+
 
         acceleration = force / self.mass
-        self.speed += acceleration
 
-        
-        self.position = (self.position[0] - scaleFactor*self.dx, self.position[1] - scaleFactor*self.dy)
+
+
+        # if self.angle >= 0 and self.angle < 90:
+        #     speed = (self.speed*math.sin(math.radians(self.angle)), self.speed*math.cos(math.radians(self.angle)))
+        #     angleToOtherBody = math.degrees(math.atan2(self.dy,self.dx))
+        #     changeVelocityVectors = (acceleration*math.sin(math.radians(angleToOtherBody)), acceleration*math.cos(math.radians(angleToOtherBody)))
+        # elif self.angle >= 90 and self.angle < 180:
+        #     speed = (self.speed*math.cos(math.radians(self.angle)), self.speed*math.sin(math.radians(self.angle)))
+        #     angleToOtherBody = math.degrees(math.atan2(self.dy,self.dx))
+        #     changeVelocityVectors = (acceleration*math.cos(math.radians(angleToOtherBody)), acceleration*math.sin(math.radians(angleToOtherBody)))
+        # elif self.angle >= 180 and self.angle < 270:
+        #     speed = (self.speed*math.cos(math.radians(self.angle)), self.speed*math.sin(math.radians(self.angle)))
+        #     angleToOtherBody = math.degrees(math.atan2(self.dy,self.dx))
+        #     changeVelocityVectors = (acceleration*math.sin(math.radians(angleToOtherBody)), acceleration*math.cos(math.radians(angleToOtherBody)))    
+        # else:
+        #     speed = (self.speed*math.sin(math.radians(self.angle)), self.speed*math.cos(math.radians(self.angle)))
+        #     angleToOtherBody = math.degrees(math.atan2(self.dy,self.dx))
+        #     changeVelocityVectors = (acceleration*math.cos(math.radians(angleToOtherBody)), acceleration*math.sin(math.radians(angleToOtherBody)))
+        #
+
+        speed = (self.speed * math.sin(math.radians(self.angle)), -self.speed * math.cos(math.radians(self.angle)))
+        scaleFactor = acceleration / distance
+        changeVelocityVectors = (scaleFactor * dx, scaleFactor * dy)        
+
+        speed = (speed[0] + changeVelocityVectors[0], speed[1] + changeVelocityVectors[1])
+        self.speed = math.sqrt(speed[0]**2+speed[1]**2)
+        self.angle = math.degrees(math.atan2(speed[0],-speed[1]))
 
         
         
@@ -716,12 +740,24 @@ class Planet:
         pygame.draw.circle(screen, self.colour, self.position, self.radius)
 
     def checkclick(self):
-        self.dy = mouse[1] -self.position[1]
-        self.dx = mouse[0] - self.position[0]
-        distance = math.sqrt(self.dx**2+self.dy**2)
+        dy = mouse[1] -self.position[1]
+        dx = mouse[0] - self.position[0]
+        distance = math.sqrt(dx**2+dy**2)
         if distance <= self.radius:
             return True
     
+    def checkCollision(self, otherBody):
+        dx = otherBody.position[0] - self.position[0]
+        dy = otherBody.position[1] - self.position[1]
+        distanceSquared = dx**2 + dy**2
+        combinedRadiiSquared = (self.radius + otherBody.radius)**2
+        if distanceSquared <= combinedRadiiSquared:
+            return True
+    def mergeBodies(self, otherBody):
+        self.mass += otherBody.mass
+
+
+
 
     
     
@@ -969,8 +1005,7 @@ while True:
                     placedobjects[checkedplanet].mass = float(enterMass)
                     placedobjects[checkedplanet].angle = float(enterAngle)
                     placedobjects[checkedplanet].speed = float(enterSpeed)                 
-                #change later to display stats as travel
-                elif not planetcreate and playing == False and objectMenuAppear == False and mouse[1] < 850:
+                elif not planetcreate and not starcreate and playing == False and objectMenuAppear == False and mouse[1] < 850:
                     for checkedplanet in range(len(placedobjects)):
                         if placedobjects[checkedplanet].checkclick():
                             enterMass = placedobjects[checkedplanet].mass
@@ -1002,25 +1037,38 @@ while True:
                         createSaveAppear = False
                     else:
                         planetcreate = False
+                        starcreate = False
                         createSaveAppear = True
                         resetScreen()
                         
                                 #toggle planet creation    
-                elif 400 <= mouse[0] <= 400+200 and 850 <= mouse[1] <= 850+100:
+                elif 400 <= mouse[0] <= 400+100 and 850 <= mouse[1] <= 850+100:
                     resetScreen()
-                    if planetcreate == False:
+                    if not planetcreate:
                         planetcreate = True
+                        starcreate = False
                     else:
                         planetcreate = False
+                elif 500 <= mouse[0] <= 500+100 and 850 <= mouse[1] <= 850+100:
+                    resetScreen()
+                    if not starcreate:
+                        starcreate = True
+                        planetcreate = False
+                    else:
+                        starcreate = False
                 elif planetcreate: 
-                    planet = Planet(mouse, 15, (random.randint(0,255), random.randint(0,255), random.randint(0,255)), 5, 3, 1, 5)
-                    placedobjects.append(planet)    
-                                
+                    planet = Planet(mouse, 15, (random.randint(0,255), random.randint(0,255), random.randint(0,255)), 5, 0, 1, 5)
+                    placedobjects.append(planet)
+                elif starcreate:
+                    star = Planet(mouse, 15, (255,155,0), 0, 0, 0, 100)    
+                    placedobjects.append(star)
                 elif 850 <= mouse[0] <= 850+250 and 850 <= mouse[1] <= 850+100:
                     playing = False
                     objectMenuAppear = False
                     planetcreate = False
+                    starcreate = False
                     mainmenu2appear = True
+                    placedobjects = []
                     main_appear = False
                     resetScreen()
                     mixer.music.load(r"C:\Users\alanj\Downloads\NEA\above_story.ogg")
@@ -1158,10 +1206,16 @@ while True:
             screen.blit(mytext, (30,850))                           
         if planetcreate:
             mytext = my_font.render("planet on", True, (0, 0, 0))
-            screen.blit(mytext, (450,850))
+            screen.blit(mytext, (400,850))
         else:
             mytext = my_font.render("planet off", True, (0, 0, 0))
-            screen.blit(mytext, (450,850))
+            screen.blit(mytext, (400,850))
+        if starcreate:
+            mytext = my_font.render("star on", True, (0, 0, 0))
+            screen.blit(mytext, (515,850))
+        else:
+            mytext = my_font.render("star off", True, (0, 0, 0))
+            screen.blit(mytext, (515,850))
         
         pygame.draw.rect(screen, (133,143,146), (1100, 850, 500, 100))
         mytext = my_font.render("click on a planet while paused", True, (0, 0, 0))
@@ -1182,8 +1236,8 @@ while True:
             screen.blit(mytext, (250,850))
 
             for i in range(len(placedobjects)):
+                collisionFound = False
                 #to be removed some point ofc
-                placedobjects[i].incrementangle()
                 placedobjects[i].anglemove()
                 #code could be more optimised if below dealt with
 
@@ -1191,7 +1245,14 @@ while True:
                 #heres a thing
                 for j in range(len(placedobjects)):
                     if i != j:
-                        placedobjects[i].movevectors(placedobjects[j])  
+                        if placedobjects[i].checkCollision(placedobjects[j]):
+                            placedobjects[i].mergeBodies(placedobjects[j])
+                            placedobjects.pop(j)
+                            collisionFound = True
+                            break
+                        placedobjects[i].movevectors(placedobjects[j]) 
+                if collisionFound: 
+                    break
                 placedobjects[i].draw(screen)      
 
             pygame.display.update() 
