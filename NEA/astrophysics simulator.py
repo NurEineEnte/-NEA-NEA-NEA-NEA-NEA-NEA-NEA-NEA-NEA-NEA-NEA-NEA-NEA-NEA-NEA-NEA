@@ -1,25 +1,47 @@
+#imports pygame, which will be crucial for providing GUI handling, and the HCI for my program, also including audio outputs as seen below
 import pygame
+#the time module will allow me to keep track of time flow in the program (since the epoch) and perhaps more notably, allow me to do sleep() for the program
 import time
+#imports the mixer module specificically so I do not have to spend code doing the full pygame.mixer.etc... later, allows music and sound
 from pygame import mixer
+#below imports the maths function, which can handle trigonometry for angles, pythagoras for length, exponentials, roots, and more maths in general
 import math
+#importing the windll module from the ctypes library allows me to change properties/metadata of the python exectuable
 from ctypes import windll
+#importing sys allows the executable to stop running after pygame stops, all without returning an error
 import sys
+#sqlite 3 is my SQL connector and will allow me to interact with local .db files
 import sqlite3
+#os works with file handling and i use it to check for paths and delete paths
 import os
+#ast will allow me to read a list from a file effectively
 import ast
+#and random can be used for generating random planet colours
 import random
+
+#this handles graphics and basically stops the upscaling of the window, which would result in a pixel being defined differently for each device
+#but this will keep it constant between devices so that my simulator will always be small enough to be displayed on the screen fully
 windll.shcore.SetProcessDpiAwareness(1)
 
+#initialises the pygame module
 pygame.init()
+
+#alternate background colours, because I ended up going with a simple black in the end
 #background_colour = (138, 194, 212)
 #background_colour = (180,167,214)
+
+#defining some constants
+
+#background colour is black
 background_colour = (0,0,0)
+#resolution
 width = 1600
 height = 950
-
+#button colours
 btncolour = (208,224,227)
 btncolourdark = (133,143,146)
 
+#here are the booleans for which screen should be displayed
 mainmenuappear = True
 mainmenu2appear = False
 login_appear = False
@@ -32,36 +54,49 @@ main_appear = False
 musicmuted = False
 planetcreate = False
 playing = False
+#controls whether user is in the process of an input
 logInUsername = False
 logInPassword = False
 signUpUsername =False
 signUpPassword = False
+#more code for if screens should appear
 viewStudentStats = False
 loadSims_appear = False
 objectMenuAppear = False
 createSaveAppear = False
+
+#the below is used to store inputs for account creation and account login before checking them against the database
 accountType = "None"
 usernameText = ""
 passwordText = ""
 securityQuestionID = ""
 securityText = ""
+#controls whether user is entering an input for planet attributes
 enteringMass, enteringSpeed, enteringAngle = False, False, False
 
+#creates a blank array for placed objects at the beginning of the program (its just the menu so none should have been placed)
 placedobjects = []
 
+#this subroutine resets the screen by just filling it with black
 def resetScreen():
+    #fills screen with black
     screen.fill((0,0,0))
 
+#below subroutine handles the drawing of my main menu for when you are not logged in
 def mainMenu():
+    #snippet of how I render font, this time it draws the program name
     my_font = pygame.font.SysFont('Times new roman', 100)
     mytext = my_font.render("Astrophysics Simulator", True, (180,167,214))
     screen.blit(mytext, (350,100))
+    #define the currently active buttons
     signInBtn = Button(screen, [600,400,450,90])
     signUpBtn = Button(screen, [600,600,450,90])
     guestBtn = Button(screen, [600,800,450,90])
     activeBtns = [signInBtn, signUpBtn, guestBtn]
+    #draw the currently active buttons by iterating throuugh the list
     for btn in activeBtns:
         btn.render(screen, btn.position)
+    #draws text onto buttons
     my_font = pygame.font.SysFont('Times new roman', 50)
     mytext = my_font.render("Sign in", True, (0,0,0))
     screen.blit(mytext, (750,415)) 
@@ -70,16 +105,21 @@ def mainMenu():
     mytext = my_font.render("Guest", True, (0,0,0))
     screen.blit(mytext, (760,815)) 
 
+#subroutine handles the rendering of the main menu after the user has logged in
 def mainMenuLoggedIn():
+    #draws the title of the program and that it is now logged in
     my_font = pygame.font.SysFont('Times new roman', 100)
     mytext = my_font.render("Astrophysics Simulator (logged in)", True, (180,167,214))
     screen.blit(mytext, (85,100))
+    #define buttons
     newBtn = Button(screen, [600,400,450,90])
     loadBtn = Button(screen, [600,600,450,90])
     statsBtn = Button(screen, [600,800,450,90])
     activeBtns = [newBtn, loadBtn, statsBtn]
+    #drawing buttons
     for btn in activeBtns:
         btn.render(screen, btn.position)
+    #draw text onto the buttons
     my_font = pygame.font.SysFont('Times new roman', 50)
     mytext = my_font.render("New Simulation", True, (0,0,0))
     screen.blit(mytext, (660,415)) 
@@ -88,10 +128,13 @@ def mainMenuLoggedIn():
     mytext = my_font.render("View Student Stats", True, (0,0,0))
     screen.blit(mytext, (630,815))
 
+#this menu handles the loading of simulations from files and should provide 6 save slots
 def loadSimsMenu():
+    #draw the title of the page, which is loading
     my_font = pygame.font.SysFont('Times new roman', 100)
     mytext = my_font.render("Load Simulation", True, (180,167,214))
     screen.blit(mytext, (500,100))
+    #instantiate buttons
     btn1 = Button(screen, [400,400,250,90])
     btn2 = Button(screen, [400,600,250,90])
     btn3 = Button(screen, [400,800,250,90])
@@ -100,8 +143,10 @@ def loadSimsMenu():
     btn6 = Button(screen, [1000,800,250,90])
     backBtn = Button(screen, [575,910,450,20])
     activeBtns = [btn1, btn2, btn3, btn4, btn5, btn6, backBtn]
+    #render buttons via iteration
     for btn in activeBtns:
         btn.render(screen, btn.position)
+    #draw the text onto the save slots to number them
     my_font = pygame.font.SysFont('Times new roman', 50)
     mytext = my_font.render("Sim 1", True, (0,0,0))
     screen.blit(mytext, (460,415)) 
@@ -116,23 +161,32 @@ def loadSimsMenu():
     mytext = my_font.render("Sim 6", True, (0,0,0))
     screen.blit(mytext, (1060,815))
     my_font = pygame.font.SysFont('Times new roman', 30)
+    #draw other button text
     mytext = my_font.render("Back", True, (0,0,0))
     screen.blit(mytext, (767,905))
-        
+
+#below subroutine handles the drawing of the view stats menu, which should only be accessible by teachers, tracks student engagement        
 def viewStatsMenu():
+    #draw title of page
     my_font = pygame.font.SysFont('Times new roman', 100)
     mytext = my_font.render("User Statistics", True, (180,167,214))
     screen.blit(mytext, (530,100))
+    #define buttons
     backBtn = Button(screen, [575,910,450,20])
     activeBtns = [backBtn]
+    #draw buttons
     for btn in activeBtns:
         btn.render(screen, btn.position)
+    #draw text onto buttons
     my_font = pygame.font.SysFont('Times new roman', 30)
     mytext = my_font.render("Back", True, (0,0,0))
     screen.blit(mytext, (767,905))    
 
+#this will draw the base screen of the main simulator part of the program and provide an interaface
 def mainSimulator():
+    #reset the screen before rendering
     resetScreen()
+    #define buttons
     musicBtn = Button(screen, [0,850,200,100])
     playBtn = Button(screen, [200,850,200,100])
     createPlanetBtn = Button(screen, [400,850,200,100])
@@ -140,35 +194,49 @@ def mainSimulator():
 
     activeBtns = [musicBtn, playBtn, menuBtn, createPlanetBtn]
     
+    #checks that the create save button has not been pressed before seeing if it should define and draw the larger save button
     if not createSaveAppear:
         saveBtn = Button(screen, [600,850,250,100])
         activeBtns.append(saveBtn)
+    #draw the buttons
     for btn in activeBtns:
         btn.render(screen, btn.position)
+    #draw text onto buttons
     my_font = pygame.font.SysFont('Times new roman', 30)
     mytext = my_font.render("Save sim", True, (0,0,0))
     screen.blit(mytext, (670,850))
     mytext = my_font.render("Back to menu", True, (0,0,0))
     screen.blit(mytext, (890,850))
 
-
+    #this iterates through all objects/celestial bodies currently in the file, and renders them properly
     for planet in placedobjects:
+        #determines a planets radius which will scale in line with a planets mass
         planet.determineradius()
+        #draws each planet individually
         planet.draw(screen)
 
+#the objectmenu subroutine is called when the user clicks on a planet, presumably to edit its attributes
+#this will handle the drawing of everything related to it
 def objectMenu(body):
+    #fills in a portion of the right hand side of the screen so that buttons and text can be displayed over it
     pygame.draw.rect(screen, (180,167,214), (1100, 0, 600, 950))
+    #define buttons
     speedBtn = Button(screen, [1200,250,200,50], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
     angleBtn = Button(screen, [1200,400,200,50], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
     massBtn = Button(screen, [1200,550,200,50], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
     activeBtns = [speedBtn, angleBtn, massBtn]
+    #render buttons
     for btn in activeBtns:
         btn.render(screen, btn.position)
+    #draws text onto the object menu
     my_font = pygame.font.SysFont('Times new roman', 75)
+    #name of planet
     mytext = my_font.render("Planet", True, (0,0,0))
     screen.blit(mytext, (1250,25))
+    #still name of planet, this is numbers based off the position in the list
     mytext = my_font.render(str(body+1), True, (0,0,0))
     screen.blit(mytext, (1330,95))
+    #allows the user to see the attribute they are editing by drawing the text to the left of the input box
     my_font = pygame.font.SysFont('Times new roman', 50)
     mytext = my_font.render("Mass", True, (0,0,0))
     screen.blit(mytext, (1235,195))
@@ -177,12 +245,15 @@ def objectMenu(body):
     mytext = my_font.render("Angle (bearing)", True, (0,0,0))
     screen.blit(mytext, (1155,490))
     my_font = pygame.font.SysFont('Times new roman', 30)
+    #this code uses the input variables to display the current attributes fora body, and this also updates as they type in so they can
+    #see what they are typing in
     mytext = my_font.render(str(enterMass), True, (0, 0, 0))
     screen.blit(mytext, (1200+5,257))
     mytext = my_font.render(str(enterSpeed), True, (0, 0, 0))
     screen.blit(mytext, (1200+5,407))
     mytext = my_font.render(str(enterAngle), True, (0, 0, 0))
     screen.blit(mytext, (1200+5,557))
+    #draws units to the right of the input boxes
     mytext = my_font.render("x 10^8 kg", True, (0, 0, 0))
     screen.blit(mytext, (1400+5,257))
     mytext = my_font.render("km/s", True, (0, 0, 0))
@@ -190,7 +261,10 @@ def objectMenu(body):
     mytext = my_font.render("°", True, (0, 0, 0))
     screen.blit(mytext, (1400+5,547))
 
+#below subroutine handles rendering of the create save menu, which overlays the save button in the main simulator program
+#this is only run once the button in question has been pressed
 def createSaveMenu():
+    #define buttons
     slot1Btn = Button(screen, [600,850,83,50])
     slot2Btn = Button(screen, [600,900,83,50])
     slot3Btn = Button(screen, [683.3,850,83,50])
@@ -198,8 +272,10 @@ def createSaveMenu():
     slot5Btn = Button(screen, [766.6,850,84,50])
     slot6Btn = Button(screen, [766.6,900,84,50])
     activeBtns = [slot1Btn, slot2Btn, slot3Btn, slot4Btn, slot5Btn, slot6Btn]
+    #render buttons
     for btn in activeBtns:
         btn.render(screen, btn.position)
+    #draw text onto each of the save slot buttons, just the numbered files
     my_font = pygame.font.SysFont('Times new roman', 30)
     mytext = my_font.render("1", True, (0,0,0))
     screen.blit(mytext, (635,850))
@@ -214,37 +290,51 @@ def createSaveMenu():
     mytext = my_font.render("6", True, (0,0,0))
     screen.blit(mytext, (801,900))
 
+#handles the rendering of the sign in screen
 def signInScreen():
+    #displays title of the screen
     my_font = pygame.font.SysFont('Times new roman', 100)
     mytext = my_font.render("Log in", True, (180,167,214))
     screen.blit(mytext, (675,100))
+    #sets whether the user is typing to false, as to not record any inputs
     typingUsername, typingPassword = False, False
+    #defines buttons
     usernameBtn = Button(screen, [575,400,450,90], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
     passwordBtn = Button(screen, [575,600,450,90], btncolour=(255,255,255), btncolourdark=(235, 235, 235))
     signInBtn = Button(screen, [575,800,450,90])
     backBtn = Button(screen, [575,910,450,20])
     activeBtns = [usernameBtn, passwordBtn,signInBtn, backBtn]
+    #renders buttons
     for btn in activeBtns:
         btn.render(screen, btn.position)
+    #displays that the user is inputting their username to the left of the input
     my_font = pygame.font.SysFont('Times new roman', 30)
+    #checks if input is empty
     if usernameText == "":
+        #if it is, display "input username here"
         mytext = my_font.render("input username here", True, (0, 0, 0))
         screen.blit(mytext, (575+5,400+30))
     else:
+        #if it isnt, draw what they currently have typed in onto the input button/box
         mytext = my_font.render(usernameText, True, (0, 0, 0))
         screen.blit(mytext, (575+5,400+30))
+    #check if password input is empty
     if passwordText == "":
+        #if it is, then say they can enter their password here
         mytext = my_font.render("input password here", True, (0, 0, 0))
         screen.blit(mytext, (575+5,600+30))
     else:
+        #if it isnt, draw what they have typed in onto the screen so they can see what they are inputting
         mytext = my_font.render(passwordText, True, (0, 0, 0))
         screen.blit(mytext, (575+5,600+30))
+    #draw text onto buttons
     mytext = my_font.render("Back", True, (0,0,0))
     screen.blit(mytext, (767,905))
     my_font = pygame.font.SysFont('Times new roman', 50)
     mytext = my_font.render("Sign in", True, (0,0,0))
     screen.blit(mytext, (725,815))
 
+#below 
 def checkUserExists():
     con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
     cur = con.cursor()
@@ -944,9 +1034,8 @@ while True:
                         enterMass = str(placedobjects[checkedplanet].mass)
                         enteringMass = True
                     elif enteringMass == True:
-                    # putting it to 0 could be an alright idea, and good it works, just put some thought to mass
                         try:
-                            placedobjects[checkedplanet].mass = float(enterMass)#
+                            placedobjects[checkedplanet].mass = float(enterMass)
                         except:
                             enterMass = 0
                             placedobjects[checkedplanet].mass = float(enterMass)
