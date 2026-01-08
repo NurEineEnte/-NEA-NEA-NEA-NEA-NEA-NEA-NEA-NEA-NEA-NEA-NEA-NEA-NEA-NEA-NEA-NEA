@@ -1,17 +1,4 @@
-yeah this ones a real stinker in init
 
-FIRST TRY TO GET pygame and python idle v.3.3 working on home computer(s) for resolution as it currently seems to be changing to expand off the screen (screenshot emails may help, 
-otherwise itll be a case of going to the forum.
-
-the goal  rn is to do teh thing because icl pmo sm w this one
-basically get the calss planets fixed by allowing it to store multiple
 and then add the calculations for physics using my calculations
 
-and please please  fix the start button doing the  thing where itll create a planet at the pause/play button before ALL ELSE 
-
-if all is said and done then move onto the hiearchy chart and/or the user end requirements on the report document to figure out what to do next.
-
-depending on how often calculations are done i may or may not have to consider utilising the gpu, although i deem this possiblity unlikely due to the complexity of my problem 
-(or lack thereof)
-
-and once again pmo crotato chip :wilted_rose: :wilted_rose: :wilted_rose::wilted_rose::wilted_rose::wilted_rose:
+in my security questions sql loading i may want to change it to a WHERE but i currently see no issue
