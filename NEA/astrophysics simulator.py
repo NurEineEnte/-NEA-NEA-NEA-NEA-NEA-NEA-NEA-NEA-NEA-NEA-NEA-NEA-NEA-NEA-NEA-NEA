@@ -68,15 +68,18 @@ viewStudentStats = False
 loadSims_appear = False
 objectMenuAppear = False
 createSaveAppear = False
+simSpeed = 1
 
 #the below is used to store inputs for account creation and account login before checking them against the database
 accountType = "None"
+enterSimSpeed = "1"
 usernameText = ""
 passwordText = ""
 securityQuestionID = ""
 securityText = ""
 #controls whether user is entering an input for planet attributes
 enteringMass, enteringSpeed, enteringAngle = False, False, False
+enteringSimSpeed = False
 
 #creates a blank array for placed objects at the beginning of the program (its just the menu so none should have been placed)
 placedobjects = []
@@ -196,8 +199,9 @@ def mainSimulator():
     createPlanetBtn = Button(screen, [400,850,100,100])
     menuBtn = Button(screen, [850,850,250,100])
     createStarBtn = Button(screen, [500,850,100,100])
+    speedBtn = Button(screen, [1100,850,500,100])
 
-    activeBtns = [musicBtn, playBtn, menuBtn, createPlanetBtn, createStarBtn]
+    activeBtns = [musicBtn, playBtn, menuBtn, createPlanetBtn, createStarBtn, speedBtn]
     
     #checks that the create save button has not been pressed before seeing if it should define and draw the larger save button
     if not createSaveAppear:
@@ -212,6 +216,13 @@ def mainSimulator():
     screen.blit(mytext, (670,850))
     mytext = my_font.render("Back to menu", True, (0,0,0))
     screen.blit(mytext, (890,850))
+    if enteringSimSpeed:
+        mytext = my_font.render(str(enterSimSpeed), True, (0, 0, 0))
+    else:
+        mytext = my_font.render(str(simSpeed), True, (0, 0, 0))
+    screen.blit(mytext, (1320,850))
+    mytext = my_font.render("Speed multiplier: ", True, (0, 0, 0))
+    screen.blit(mytext, (1100,850))
 
     #this iterates through all objects/celestial bodies currently in the file, and renders them properly
     for planet in placedobjects:
@@ -847,7 +858,22 @@ class Planet:
         if distanceSquared <= combinedRadiiSquared:
             return True
     def mergeBodies(self, otherBody):
-        self.mass += otherBody.mass   
+        self.mass += otherBody.mass 
+
+class Protostar(Planet):
+    def __init__(self, position, radius, colour, speed, angle, angleincrement, mass, temperature):
+        super().__init__(position, radius, colour, speed, angle, angleincrement, mass)
+        self.temperature = temperature
+        self.colour = (100,100,100)
+        self.radius = 30 + self.mass * 0.1
+        for i in range(20):
+            planet = Planet((self.position[0]+ random.randint(-250,250), self.position[1]+ random.randint(-250,250),), 5, (100,100,100), 0, 90, 1, 0.1)
+            placedobjects.append(planet)
+    def incrementRadius(self, multiplier=1):
+        self.radius += (0.05 * multiplier)
+    def incrementTemperature(self):
+        self.temperature += 10000
+    
 
 class MainSequenceStar(Planet):
     def __init__(self, position, radius, colour, speed, angle, angleincrement, mass, temperature):
@@ -918,6 +944,11 @@ class NeutronStar(Planet):
         self.temperature = temperature
         self.colour = (202,206,255)
         self.radius = 10 + self.mass * 0.1
+        loopvalues = [[0,-25],[25,-25],[25,0],[25,25],[0,25],[-25,25],[-25,0],[-25,-25]]
+        for i in range(8):
+            planet = Planet((self.position[0] + loopvalues[i][0], self.position[1] + loopvalues[i][1],), 5, (100,100,100), 17, 45*i, 1, 0.1)
+            placedobjects.append(planet)
+            
     def determineradius(self):
         #current formula
         self.radius = 50 + self.mass * 0.1
@@ -930,8 +961,12 @@ class BlackHole(Planet):
     def __init__(self, position, radius, colour, speed, angle, angleincrement, mass, temperature):
         super().__init__(position, radius, colour, speed, angle, angleincrement, mass)
         self.temperature = temperature
-        self.colour = (5, 1, 31)
-        self.radius = 4 + self.mass * 0.01
+        self.colour = (45, 36, 105)
+        self.radius = 4 + self.mass * 0.
+        loopvalues = [[0,-25],[25,-25],[25,0],[25,25],[0,25],[-25,25],[-25,0],[-25,-25]]
+        for i in range(8):
+            planet = Planet((self.position[0] + loopvalues[i][0], self.position[1] + loopvalues[i][1],), 5, (100,100,100), 17, 45*i, 1, 0.1)
+            placedobjects.append(planet)
     def determineradius(self):
         #current formula
         self.radius = 4 + self.mass * 0.001
@@ -1186,7 +1221,7 @@ while True:
                     placedobjects[checkedplanet].mass = float(enterMass)
                     placedobjects[checkedplanet].angle = float(enterAngle)
                     placedobjects[checkedplanet].speed = float(enterSpeed)                 
-                #change later to display stats as travel
+                #if they click outside of the object menu on a planet then opens the objectmenu by setting it to appear
                 elif not planetcreate and not starcreate and playing == False and objectMenuAppear == False and mouse[1] < 850:
                     for checkedplanet in range(len(placedobjects)):
                         if placedobjects[checkedplanet].checkclick():
@@ -1244,7 +1279,7 @@ while True:
                     planet = Planet(mouse, 15, (random.randint(0,255), random.randint(0,255), random.randint(0,255)), 5, 90, 1, 5)
                     placedobjects.append(planet)
                 elif starcreate:
-                    star = MainSequenceStar(mouse, 15, (20,20,20), 0, 0, 0, 100,15000000)    
+                    star = Protostar(mouse, 15, (20,20,20), 0, 0, 0, 100,0)    
                     placedobjects.append(star)
                 elif 850 <= mouse[0] <= 850+250 and 850 <= mouse[1] <= 850+100:
                     playing = False
@@ -1257,6 +1292,26 @@ while True:
                     resetScreen()
                     mixer.music.load(r"C:\Users\alanj\Downloads\NEA\above_story.ogg")
                     mixer.music.play(1)
+                elif 1100 <= mouse[0] <= 1100+500 and 850 <= mouse[1] <= 850+100 and objectMenuAppear == False:
+                    playing = False
+                    enteringSimSpeed = True
+                    enterSimSpeed = str(simSpeed)
+                
+                if  not 1100 <= mouse[0] <= 1100+500 and  not 850 <= mouse[1] <= 850+100:
+                    enteringSimSpeed = False
+                    try:
+                        enterSimSpeed = float(enterSimSpeed)
+                    except:
+                        simSpeed = 1
+                    else:
+                        if enterSimSpeed < 0:
+                            simSpeed = 0
+                        elif enterSimSpeed > 100 :
+                            simSpeed = 100
+                        else:
+                            simSpeed = enterSimSpeed
+                    enterSimSpeed = str(simSpeed)
+                    
 
                     
                 #checkwhatthehell
@@ -1357,6 +1412,11 @@ while True:
                     screen.blit(mytext, (575,500))
                 else:
                     securityText += event.unicode
+            if enterSimSpeed == True:
+                if event.key == pygame.K_BACKSPACE:
+                    enterSimSpeed = enterSimSpeed[:-1]
+                else:
+                    enterSimSpeed += event.unicode
 
             if enteringMass == True:
                 if event.key == pygame.K_BACKSPACE:
@@ -1402,12 +1462,9 @@ while True:
         else:
             mytext = my_font.render("star off", True, (0, 0, 0))
             screen.blit(mytext, (515,850))
-        
-        pygame.draw.rect(screen, (133,143,146), (1100, 850, 500, 100))
-        mytext = my_font.render("click on a planet while paused", True, (0, 0, 0))
-        screen.blit(mytext, (1100,850))
-        mytext = my_font.render("and not placing to edit", True, (0, 0, 0))
-        screen.blit(mytext, (1100,90))
+
+
+
 
         if objectMenuAppear:
             objectMenu(checkedplanet)
@@ -1433,14 +1490,22 @@ while True:
                 for j in range(len(placedobjects)):
                     if i != j:
                         if placedobjects[i].checkCollision(placedobjects[j]):
-                            placedobjects[i].mergeBodies(placedobjects[j])
-                            placedobjects.pop(j)
-                            collisionFound = True
-                            break
+                            if placedobjects[j].__class__.__name__ == "Planet":
+                                placedobjects[i].mergeBodies(placedobjects[j])
+                                placedobjects.pop(j)
+                                collisionFound = True
+                                break
                         placedobjects[i].movevectors(placedobjects[j]) 
                 if collisionFound: 
                     break
-                if placedobjects[j].__class__.__name__ == "MainSequenceStar":
+                if placedobjects[j].__class__.__name__ == "Protostar":
+                    placedobjects[j].incrementTemperature()
+                    if placedobjects[j].temperature >= 10000000:
+                        star = MainSequenceStar(placedobjects[j].position, placedobjects[j].radius, placedobjects[j].colour, placedobjects[j].speed, placedobjects[j].angle,  placedobjects[j].angleincrement, placedobjects[j].mass, placedobjects[j].temperature)    
+                        placedobjects.append(star)
+                        placedobjects.pop(j)
+
+                elif placedobjects[j].__class__.__name__ == "MainSequenceStar":
                     placedobjects[j].determineSpectralClass()
                     placedobjects[j].incrementTemperature()
                     if placedobjects[j].temperature >= 100000000:
