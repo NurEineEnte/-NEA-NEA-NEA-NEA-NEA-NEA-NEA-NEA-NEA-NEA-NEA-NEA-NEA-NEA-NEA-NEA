@@ -54,7 +54,11 @@ main_appear = False
 musicmuted = False
 #code for if planets/stars should be created on click
 planetcreate = False
+pstarcreate = False
 starcreate = False
+giantcreate = False
+nstarcreate = False
+bholecreate = False
 
 
 playing = False
@@ -196,12 +200,17 @@ def mainSimulator():
     #define buttons
     musicBtn = Button(screen, [0,850,200,100])
     playBtn = Button(screen, [200,850,200,100])
-    createPlanetBtn = Button(screen, [400,850,100,100])
+    createPlanetBtn = Button(screen, [400,850,100,33])
+    createNebulaBtn = Button(screen, [500,850,100,33])
+    createStarBtn = Button(screen, [400,883,100,33])
+    createGiantBtn = Button(screen, [500,883,100,33])
+    createNstarBtn = Button(screen, [400,916,100,34])
+    createBholeBtn = Button(screen, [500,916,100,34])
     menuBtn = Button(screen, [850,850,250,100])
-    createStarBtn = Button(screen, [500,850,100,100])
+
     speedBtn = Button(screen, [1100,850,500,100])
 
-    activeBtns = [musicBtn, playBtn, menuBtn, createPlanetBtn, createStarBtn, speedBtn]
+    activeBtns = [musicBtn, playBtn, menuBtn, createPlanetBtn, createNebulaBtn, createStarBtn, createGiantBtn, createNstarBtn, createBholeBtn, speedBtn]
     
     #checks that the create save button has not been pressed before seeing if it should define and draw the larger save button
     if not createSaveAppear:
@@ -248,7 +257,7 @@ def objectMenu(body):
     #draws text onto the object menu
     my_font = pygame.font.SysFont('Times new roman', 75)
     #name of planet
-    mytext = my_font.render("Planet", True, (0,0,0))
+    mytext = my_font.render("Object", True, (0,0,0))
     screen.blit(mytext, (1250,25))
     #still name of planet, this is numbers based off the position in the list
     mytext = my_font.render(str(body+1), True, (0,0,0))
@@ -1222,7 +1231,7 @@ while True:
                     placedobjects[checkedplanet].angle = float(enterAngle)
                     placedobjects[checkedplanet].speed = float(enterSpeed)                 
                 #if they click outside of the object menu on a planet then opens the objectmenu by setting it to appear
-                elif not planetcreate and not starcreate and playing == False and objectMenuAppear == False and mouse[1] < 850:
+                elif not planetcreate and not pstarcreate and playing == False and objectMenuAppear == False and mouse[1] < 850:
                     for checkedplanet in range(len(placedobjects)):
                         if placedobjects[checkedplanet].checkclick():
                             enterMass = placedobjects[checkedplanet].mass
@@ -1256,7 +1265,7 @@ while True:
                         createSaveAppear = False
                     else:
                         planetcreate = False
-                        starcreate = False
+                        pstarcreate = False
                         createSaveAppear = True
                         resetScreen()
                         
@@ -1265,27 +1274,21 @@ while True:
                     resetScreen()
                     if not planetcreate:
                         planetcreate = True
-                        starcreate = False
+                        pstarcreate = False
                     else:
                         planetcreate = False
                 elif 500 <= mouse[0] <= 500+100 and 850 <= mouse[1] <= 850+100:
                     resetScreen()
-                    if not starcreate:
-                        starcreate = True
+                    if not pstarcreate:
+                        pstarcreate = True
                         planetcreate = False
                     else:
-                        starcreate = False
-                elif planetcreate: 
-                    planet = Planet(mouse, 15, (random.randint(0,255), random.randint(0,255), random.randint(0,255)), 5, 90, 1, 5)
-                    placedobjects.append(planet)
-                elif starcreate:
-                    star = Protostar(mouse, 15, (20,20,20), 0, 0, 0, 100,0)    
-                    placedobjects.append(star)
+                        pstarcreate = False
                 elif 850 <= mouse[0] <= 850+250 and 850 <= mouse[1] <= 850+100:
                     playing = False
                     objectMenuAppear = False
                     planetcreate = False
-                    starcreate = False
+                    pstarcreate = False
                     mainmenu2appear = True
                     placedobjects = []
                     main_appear = False
@@ -1294,8 +1297,17 @@ while True:
                     mixer.music.play(1)
                 elif 1100 <= mouse[0] <= 1100+500 and 850 <= mouse[1] <= 850+100 and objectMenuAppear == False:
                     playing = False
+                    planetcreate = False
+                    pstarcreate = False
                     enteringSimSpeed = True
                     enterSimSpeed = str(simSpeed)
+                elif planetcreate and playing == False: 
+                    planet = Planet(mouse, 15, (random.randint(0,255), random.randint(0,255), random.randint(0,255)), 5, 90, 1, 5)
+                    placedobjects.append(planet)
+                elif pstarcreate and playing == False:
+                    star = Protostar(mouse, 15, (20,20,20), 0, 0, 0, 100,0)    
+                    placedobjects.append(star)
+
                 
                 if  not 1100 <= mouse[0] <= 1100+500 and  not 850 <= mouse[1] <= 850+100:
                     enteringSimSpeed = False
@@ -1456,13 +1468,36 @@ while True:
         else:
             mytext = my_font.render("planet off", True, (0, 0, 0))
             screen.blit(mytext, (400,850))
-        if starcreate:
-            mytext = my_font.render("star on", True, (0, 0, 0))
+        if pstarcreate:
+            mytext = my_font.render("pstar on", True, (0, 0, 0))
             screen.blit(mytext, (515,850))
         else:
-            mytext = my_font.render("star off", True, (0, 0, 0))
+            mytext = my_font.render("pstar off", True, (0, 0, 0))
             screen.blit(mytext, (515,850))
-
+        if starcreate:
+            mytext = my_font.render("star on", True, (0, 0, 0))
+            screen.blit(mytext, (400,883))
+        else:
+            mytext = my_font.render("star off", True, (0, 0, 0))
+            screen.blit(mytext, (400,883))
+        if giantcreate:
+            mytext = my_font.render("giant on", True, (0, 0, 0))
+            screen.blit(mytext, (500,883))
+        else:
+            mytext = my_font.render("giant off", True, (0, 0, 0))
+            screen.blit(mytext, (500,883))       
+        if nstarcreate:
+            mytext = my_font.render("nstar on", True, (0, 0, 0))
+            screen.blit(mytext, (400,916))
+        else:
+            mytext = my_font.render("nstar off", True, (0, 0, 0))
+            screen.blit(mytext, (400,916))
+        if bholecreate:
+            mytext = my_font.render("bhole on", True, (0, 0, 0))
+            screen.blit(mytext, (500,916))
+        else:
+            mytext = my_font.render("bhole off", True, (0, 0, 0))
+            screen.blit(mytext, (500,916))
 
 
 
