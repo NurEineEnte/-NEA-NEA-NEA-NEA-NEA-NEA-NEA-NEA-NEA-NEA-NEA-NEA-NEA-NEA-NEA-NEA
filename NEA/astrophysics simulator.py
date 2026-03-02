@@ -732,7 +732,7 @@ def saveSimToFile(saveslot):
     path = str(saveslot) + ".txt"
     if os.path.exists(r"C:\Users\alanj\Downloads\NEA\save" + path):
         os.remove(r"C:\Users\alanj\Downloads\NEA\save" + path)
-
+    #this determines the path of the files it saves, and opens the file at that path
     f = open(r"C:\Users\alanj\Downloads\NEA\save" + path, "a")
     for i in range(len(placedobjects)):
         f.write(str(placedobjects[i].position) + "\n")
@@ -755,8 +755,9 @@ def loadSimFromFile(saveslot):
         if position == "":
             break
         else:
+            #this line helps convert any lists stored as text in the file into a usable format by the program
             position = ast.literal_eval(position)
-
+        #gather all attributes from this section of the save file
         radius = float(f.readline().strip())
         colour = ast.literal_eval(f.readline().strip())
         print(type(colour))
@@ -765,6 +766,7 @@ def loadSimFromFile(saveslot):
         angleincrement = float(f.readline().strip())
         mass = float(f.readline().strip())
         f.readline()
+        #create a planet with the atributes that were just read
         planet = Planet(position, radius, colour, speed, angle, angleincrement, mass)
         placedobjects.append(planet)
     f.close()
@@ -853,46 +855,74 @@ class Planet:
         pygame.draw.circle(screen, self.colour, self.position, self.radius)
     #keep a track of if the planet has been clicked to open up a menu
     def checkclick(self):
+        #calculations distance in terms of x and y coordinate and then fines the direct distance using pyhagoras
         dy = mouse[1] -self.position[1]
         dx = mouse[0] - self.position[0]
         distance = math.sqrt(dx**2+dy**2)
+        #if the distance to the mouse is less than the radius of the object then detect it as a click, will be used to open object menu later
         if distance <= self.radius:
             return True
-        
+
+#this function checks for a collision between any two bodies in the program and carries out the right steps to resolve it
     def checkCollision(self, otherBody):
+        #calculates differences in x and y coordinate values
         dx = otherBody.position[0] - self.position[0]
         dy = otherBody.position[1] - self.position[1]
+        #and then finds the direct distance to the other body
         distanceSquared = dx**2 + dy**2
         combinedRadiiSquared = (self.radius + otherBody.radius)**2
+        #same as saying, if the distance between the two bodies is less than their combined radii, then this means that their circles (as it appears to us)
+        #are touching and they must be handled to prevent a divide by 0 error later down the line
         if distanceSquared <= combinedRadiiSquared:
+            #return true so it triggers the rectifying
             return True
+    #this combines the mass of the two colliding planets/objects
     def mergeBodies(self, otherBody):
         self.mass += otherBody.mass 
 
+#this is a class, protostar
+#which stars the life cycle of a star
+#this inherits from the planet class
 class Protostar(Planet):
+    #inherit and create attributes (temperature is new)
     def __init__(self, position, radius, colour, speed, angle, angleincrement, mass, temperature):
+        #super() inherits all base class attributes and methods
         super().__init__(position, radius, colour, speed, angle, angleincrement, mass)
+        #defines temperature
         self.temperature = temperature
+        #sets protostar to a constant grey colour
         self.colour = (100,100,100)
+        #defines the formula for radius (not scientific, this is just for visual display)
         self.radius = 30 + self.mass * 0.1
+        #to simulate the effect of a surrounding nebula in clumps, the simulator will generate 20 planet objects around the protostar, which will be drawn inwards towards it
+        #and then collide with it
         for i in range(20):
             planet = Planet((self.position[0]+ random.randint(-250,250), self.position[1]+ random.randint(-250,250),), 5, (100,100,100), 0, 90, 1, 0.1)
             placedobjects.append(planet)
+    #
     def incrementRadius(self, multiplier=1):
+        #changes how much the radius will visually grow on the planet with time
         self.radius += (0.05 * multiplier)
+    #temperature, or core temperature is the main statistic determining when next phases will happen with these objects
     def incrementTemperature(self):
         self.temperature += 10000
     
-
+#main sequence star inherits from the planet class too
 class MainSequenceStar(Planet):
+    #add attributes (new one is temperature again)
     def __init__(self, position, radius, colour, speed, angle, angleincrement, mass, temperature):
         super().__init__(position, radius, colour, speed, angle, angleincrement, mass)
+        #define temperature
         self.temperature = temperature
-    def determineradius(self,):
-        #current formula
+    #the radius is set using a different formula here, to demonstrate how main sequence stars end up larger than protostars as the outwards nuclear pressure from fusion acts
+    def determineradius(self):
+        #
         self.radius = 50 + self.mass * 0.1
+    #function for determining spectral class of a main sequence star and setting colour
     def determineSpectralClass(self):
+        #this is a very important formula, as it uses a common empirical formula to estimate surface temperature from mass, and i decided to keep colour a constant for simplicity
         stemperature = 5740*((self.mass/20) ** 0.54)
+        #these define the ranges of spectral classes
         if stemperature < 2500:
             self.colour = (159,82,81)
         elif stemperature < 3500:
@@ -909,55 +939,81 @@ class MainSequenceStar(Planet):
             self.colour = (151,204,253)      
         else:
             self.colour = (2,113,194)
+    #this function will be called as time increase, representing the change in core temperature that will happen as a result of the fusion of different elements
+    #if is also how the program knows to moves a star into red giant phase
+    #this also redefines increment temperature specific to this object
     def incrementTemperature(self):
         self.temperature += 85000
 
+#creates red giant class, inheriting from planet
 class RedGiant(Planet):
     def __init__(self, position, radius, colour, speed, angle, angleincrement, mass, temperature):
+        #inherit all attributes and methods
         super().__init__(position, radius, colour, speed, angle, angleincrement, mass)
         self.temperature = temperature
+        #define colour as a constant red for simplicity
         self.colour = (254,3,0)
+        #redefine radius formula
         self.radius = 50 + self.mass * 0.1
+    #and redefine how the radius visually increases as time passes, this is done to show swelling and contracting for the red giant
+    #this also controls when a red giant will end up going supernova
     def incrementRadius(self, multiplier=1):
         self.radius += (0.05 * multiplier)
-        
+    #again, redefining hte increment temperature procedure, showing polymorphism
+    #this will constantly increase along with time
     def incrementTemperature(self):
         self.temperature += 200000
 
 
-
+#class dwarf star after a star with <1.4 solar masses ends its main sequence and red giant phases
 class DwarfStar(Planet):
+    #inherit attributes and methods from the planet class
     def __init__(self, position, radius, colour, speed, angle, angleincrement, mass, temperature):
         super().__init__(position, radius, colour, speed, angle, angleincrement, mass)
         self.temperature = temperature
+        #keeps the dwarf star a white to begin with
         self.colour = (202,206,255)
+        #redefine the radius formula as dwarf stars end up being a lot smaller than red giants
         self.radius = 10 + self.mass * 0.1
+
+    #polymorphism again, redefine the radius method to be specific to this class (dwarf star)
     def determineRadius(self):
         #current formula
         self.radius = 10 + self.mass * 0.1
+    #polymorphism, this simulates the cooling of the dwarf star, and this will simply happen over time
     def incrementTemperature(self):
         self.temperature -= 300000
     def determineColour(self):
+        #however, as the dwarf star cools down over time, it will glow less and less as it emits less energy
+        #i have chosen to simulate this by doing it as a ratio of what is close to the initial temperature for a white dwarf
         colourscale = self.temperature / 300000000
+        #error handling to make sure program doesnt break
         if colourscale > 1:
             colourscale = 1
         elif colourscale < 0:
             colourscale = 0
+        #colourscape is a value which grows smaller over time, this means that the object will eventually fade from white to black as it emits no substantial amount of energy
         self.colour = ((colourscale * 255)//1, (colourscale * 255)//1, (colourscale * 255)//1)
     def incrementRadius(self):
       self.radius += 0.5
 
+#class for a neutron star, inherits from planet
 class NeutronStar(Planet):
+    #
     def __init__(self, position, radius, colour, speed, angle, angleincrement, mass, temperature):
         super().__init__(position, radius, colour, speed, angle, angleincrement, mass)
         self.temperature = temperature
+        #appears a constant white-blue colour
         self.colour = (202,206,255)
         self.radius = 10 + self.mass * 0.1
+        #this is just me experimenting and trying to define locations of the planet objects before looping and reading them all
         loopvalues = [[0,-25],[25,-25],[25,0],[25,25],[0,25],[-25,25],[-25,0],[-25,-25]]
+        #similar to what has been seen in the nebula, but 8 objects are created at predefined locations relative to the neutron star
+        #this attempts to simulate the debris from a supernova all flying out and away
         for i in range(8):
             planet = Planet((self.position[0] + loopvalues[i][0], self.position[1] + loopvalues[i][1],), 5, (100,100,100), 17, 45*i, 1, 0.1)
             placedobjects.append(planet)
-            
+    #polymorphism of the determine radius formula, as they should scale around the same as dwarf stars as they are so densely packed with neutrons
     def determineradius(self):
         #current formula
         self.radius = 50 + self.mass * 0.1
@@ -966,16 +1022,23 @@ class NeutronStar(Planet):
     def incrementRadius(self):
       self.radius += 0.5
 
+#creates the black hole class which inherits from planet
 class BlackHole(Planet):
     def __init__(self, position, radius, colour, speed, angle, angleincrement, mass, temperature):
         super().__init__(position, radius, colour, speed, angle, angleincrement, mass)
         self.temperature = temperature
+        #set colour to a purple-black colour, the purple being there so the user can actually se it
         self.colour = (45, 36, 105)
+        #redefine radius to be really small because black holes are small and very dense
         self.radius = 4 + self.mass * 0.
+        ##this is just me experimenting and trying to define locations of the planet objects before looping and reading them all
         loopvalues = [[0,-25],[25,-25],[25,0],[25,25],[0,25],[-25,25],[-25,0],[-25,-25]]
+        #similar to what has been seen in the nebula, but 8 objects are created at predefined locations relative to the neutron star
+        #this attempts to simulate the debris from a supernova all flying out and away
         for i in range(8):
             planet = Planet((self.position[0] + loopvalues[i][0], self.position[1] + loopvalues[i][1],), 5, (100,100,100), 17, 45*i, 1, 0.1)
             placedobjects.append(planet)
+    #polymorphise the radius formula to make the black hole very small, because they are the densest objects ever, and the most compact
     def determineradius(self):
         #current formula
         self.radius = 4 + self.mass * 0.001
@@ -1516,64 +1579,95 @@ while True:
 
             for i in range(len(placedobjects)):
                 collisionFound = False
-                #to be removed some point ofc
+                #moves the planet in regards to its speed components
                 placedobjects[i].anglemove()
-                #code could be more optimised if below dealt with
 
 
-                #heres a thing
+                #start calculations between all bodies
                 for j in range(len(placedobjects)):
                     if i != j:
+                        #check for collisions between bodies and merge if so
                         if placedobjects[i].checkCollision(placedobjects[j]):
                             if placedobjects[j].__class__.__name__ == "Planet":
                                 placedobjects[i].mergeBodies(placedobjects[j])
                                 placedobjects.pop(j)
                                 collisionFound = True
                                 break
+                        #calculate the force between object(body) number i and object(body) number j 
                         placedobjects[i].movevectors(placedobjects[j]) 
+                #if a collision is found then the loop terminates to deal with the object that has just been deleted.
                 if collisionFound: 
                     break
+                #if the class of this object is a protostar
                 if placedobjects[j].__class__.__name__ == "Protostar":
+                    #increment temperature over time
                     placedobjects[j].incrementTemperature()
+                    #if temperature is enough to fuse hydrogen in its core
                     if placedobjects[j].temperature >= 10000000:
+                        #transfer the star over to the main sequence object and delete the protostar instance of it
                         star = MainSequenceStar(placedobjects[j].position, placedobjects[j].radius, placedobjects[j].colour, placedobjects[j].speed, placedobjects[j].angle,  placedobjects[j].angleincrement, placedobjects[j].mass, placedobjects[j].temperature)    
                         placedobjects.append(star)
                         placedobjects.pop(j)
-
+                #if class of object is main sequence star
                 elif placedobjects[j].__class__.__name__ == "MainSequenceStar":
+                    #change stars colour depending on surface temperature which depends on mass
                     placedobjects[j].determineSpectralClass()
+                    #increment temperature over time
                     placedobjects[j].incrementTemperature()
+                    #if temperature is enough to fuse helium
                     if placedobjects[j].temperature >= 100000000:
+                        #transfer it over to a red giant object, and delete the main sequence instance of it
                         star = RedGiant(placedobjects[j].position, placedobjects[j].radius, placedobjects[j].colour, placedobjects[j].speed, placedobjects[j].angle,  placedobjects[j].angleincrement, placedobjects[j].mass, placedobjects[j].temperature)    
                         placedobjects.append(star)
                         placedobjects.pop(j)
+                #however, if the class is a red giant
                 elif placedobjects[j].__class__.__name__ == "RedGiant":
+                    #increment temperature over time
                     placedobjects[j].incrementTemperature()
+                    #but also increment radius over time at a constant rate to show swelling up
                     placedobjects[j].incrementRadius()
                     
+                    #if mass is less than 1.4 solar masses and temperature has reached a value which is approaching but still short of 
+                    #the temperature required to fuse carbon in stars
                     if placedobjects[j].temperature >= 300000000 and placedobjects[j].mass < (1.4*20):
+                        #explode the star and grow its radius rapidly to simulate dust/gas all blowing outwards
                         placedobjects[j].incrementRadius(80)
+                        #when radius has reached above this amount, stop it and create a dwarf star object in its place
                         if placedobjects[j].radius >= 400:
                             star = DwarfStar(placedobjects[j].position, placedobjects[j].radius, placedobjects[j].colour, placedobjects[j].speed, placedobjects[j].angle,  placedobjects[j].angleincrement, placedobjects[j].mass, placedobjects[j].temperature)    
                             placedobjects.append(star)
                             placedobjects.pop(j)
+                    #if temperature is enough to fuse carbon, and the mass of the star is greater than 1.4 solar masses
                     elif placedobjects[j].temperature >= 800000000 and placedobjects[j].mass >= (1.4*20):
+                        #if star colour is white (i.e. in my program, undergoing a supernova) then expand it extremely fast to represent an explosion
                         if placedobjects[j].colour == (255,255,255):
+                            #passes the multiplier of 500 into increment radius and increases the methods strength
                             placedobjects[j].incrementRadius(500)
                         else:                            
+                            #otherwise start its gradual collapse into one single point
                             placedobjects[j].incrementRadius(-8)
+                        #this shows the trigger of the supernova, when the radius is extremely small, the colour becomes white and then itll expand like an explosion
                         if placedobjects[j].radius <= 0.5:
                             placedobjects[j].colour = (255,255,255)
+                        #if the radius of the supernova effects have reached too high, then the next stage of the life of the star begins
                         if placedobjects[j].radius >= 1500:
+                            #if star between 1.4-3 solar masses, transfer the red giant data to a neutron star
                             if placedobjects[j].mass < (3*20):
                                 star = NeutronStar(placedobjects[j].position, placedobjects[j].radius, placedobjects[j].colour, placedobjects[j].speed, placedobjects[j].angle,  placedobjects[j].angleincrement, placedobjects[j].mass, placedobjects[j].temperature)    
+                            #if star has > 3 solar masses transfer the red giant data to a black hole 
                             elif placedobjects[j].mass >= (3*20):
                                 star = BlackHole(placedobjects[j].position, placedobjects[j].radius, placedobjects[j].colour, placedobjects[j].speed, placedobjects[j].angle,  placedobjects[j].angleincrement, placedobjects[j].mass, placedobjects[j].temperature)                           
                             placedobjects.append(star)
+                            #delete current instance  of star
                             placedobjects.pop(j)
+
+                #if class name of object is a dwarf star           
                 elif placedobjects[j].__class__.__name__ == "DwarfStar":
+                    #determine radius of dwarf
                     placedobjects[j].determineRadius()
+                    #decrease temperature of dwarf
                     placedobjects[j].incrementTemperature()
+                    #change colour of dwarf (will fade into black)
                     placedobjects[j].determineColour()
  
                 placedobjects[i].draw(screen)      
