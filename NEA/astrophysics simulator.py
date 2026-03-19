@@ -70,6 +70,7 @@ signUpPassword = False
 #more code for if screens should appear
 viewStudentStats = False
 loadSims_appear = False
+viewGuide = False
 objectMenuAppear = False
 createSaveAppear = False
 simSpeed = 1
@@ -125,8 +126,9 @@ def mainMenuLoggedIn():
     #define buttons
     newBtn = Button(screen, [600,400,450,90])
     loadBtn = Button(screen, [600,600,450,90])
+    guideBtn = Button(screen, [1300,300,200,90])
     
-    activeBtns = [newBtn, loadBtn]
+    activeBtns = [newBtn, loadBtn, guideBtn]
     if usernameText != "":
         statsBtn = Button(screen, [600,800,450,90])
         activeBtns.append(statsBtn)
@@ -141,6 +143,8 @@ def mainMenuLoggedIn():
     screen.blit(mytext, (655,615)) 
     mytext = my_font.render("View Student Stats", True, (0,0,0))
     screen.blit(mytext, (630,815))
+    mytext = my_font.render("Guide", True, (0,0,0))
+    screen.blit(mytext, (1340,310))
 
 #this menu handles the loading of simulations from files and should provide 6 save slots
 def loadSimsMenu():
@@ -179,7 +183,7 @@ def loadSimsMenu():
     mytext = my_font.render("Back", True, (0,0,0))
     screen.blit(mytext, (767,905))
 
-#below subroutine handles the drawing of the view stats menu, which should only be accessible by teachers, tracks student engagement        
+#below subroutine handles the drawing of the view stats menu, which should only be accessible by teachers to view everyones stats, students may view own stats     
 def viewStatsMenu():
     #draw title of page
     my_font = pygame.font.SysFont('Times new roman', 100)
@@ -190,22 +194,60 @@ def viewStatsMenu():
         con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
         cur = con.cursor()
         search_query = ("""SELECT username, objectsPlaced
-                        FROM accounts, accountstats""")
+                        FROM accounts, accountstats
+                        where accounts.accountID = accountstats.accountID""")
         result = cur.execute(search_query)
+
         my_font = pygame.font.SysFont('Times new roman', 50)
         mytext = my_font.render("Username", True, (133,143,146))
         screen.blit(mytext, (350,200))
         mytext = my_font.render("Objects Placed", True, (133,143,146))
         screen.blit(mytext, (1050,200))
-        accountstats = row = result.fetchall()
+        accountstats = result.fetchall()
+        con.close()
         my_font = pygame.font.SysFont('Times new roman', 20)
         for i in range(len(accountstats)):
-            mytext = my_font.render(row[i][0], True, (180,167,214))
+            mytext = my_font.render(accountstats[i][0], True, (180,167,214))
             screen.blit(mytext, (350,250+i*30))
-            mytext = my_font.render(str(row[i][1]), True, (180,167,214))
+            mytext = my_font.render(str(accountstats[i][1]), True, (180,167,214))
             screen.blit(mytext, (1050,250+i*30))
-
+    else:
+        mytext = my_font.render("Your Statistics", True, (180,167,214))
+        screen.blit(mytext, (530,100))
+        con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+        cur = con.cursor()
+        search_query = ("""SELECT objectsPlaced
+                        FROM accounts, accountstats
+                        where accounts.accountID = accountstats.accountID
+                        AND username = ? """)
+        result = cur.execute(search_query, (usernameText,))
+        row = result.fetchone()
         con.close()
+        my_font = pygame.font.SysFont('Times new roman', 50)
+        textorender = "You (" + usernameText + ") have placed"
+        mytext = my_font.render(textorender, True, (133,143,146))
+        screen.blit(mytext, (580,400))
+        mytext = my_font.render(str(row[0]), True, (133,143,146))
+        screen.blit(mytext, (800,500))
+        mytext = my_font.render("objects", True, (133,143,146))
+        screen.blit(mytext, (730,600))
+
+    #define buttons
+    backBtn = Button(screen, [575,910,450,20])
+    activeBtns = [backBtn]
+    #draw buttons
+    for btn in activeBtns:
+        btn.render(screen, btn.position)
+    #draw text onto buttons
+    my_font = pygame.font.SysFont('Times new roman', 30)
+    mytext = my_font.render("Back", True, (0,0,0))
+    screen.blit(mytext, (767,905))  
+
+def viewGuideMenu():
+    #draw title of page
+    my_font = pygame.font.SysFont('Times new roman', 100)
+    mytext = my_font.render("User guidance", True, (180,167,214))
+    screen.blit(mytext, (530,100))
     #define buttons
     backBtn = Button(screen, [575,910,450,20])
     activeBtns = [backBtn]
@@ -216,6 +258,44 @@ def viewStatsMenu():
     my_font = pygame.font.SysFont('Times new roman', 30)
     mytext = my_font.render("Back", True, (0,0,0))
     screen.blit(mytext, (767,905))    
+    mytext = my_font.render("- In the main simulation, objects can be placed by toggling creation on and then clicking the screen while paused", True, (133,143,146))
+    screen.blit(mytext, (100,300))
+    mytext = my_font.render("- Attributes of individual planets/bodies can be changed by clicking on the body while paused", True, (133,143,146))
+    screen.blit(mytext, (100,350))
+    mytext = my_font.render("- This simulator simulates gravity, and how it pulls planets and various things towards eachother", True, (133,143,146))
+    screen.blit(mytext, (100,450))
+    mytext = my_font.render("- As well as having a focus on stars, with spectral classes and the life cycle of a star being included", True, (133,143,146))
+    screen.blit(mytext, (100,500))
+    mytext = my_font.render("- Note that timescales over which things happen relatively are not accurate, this is an oversimplification for education", True, (133,143,146))
+    screen.blit(mytext, (100,550))
+    mytext = my_font.render("I personally suggest experimenting yourself", True, (133,143,146))
+    screen.blit(mytext, (100,700))
+    mytext = my_font.render("with mass values of main sequence stars", True, (133,143,146))
+    screen.blit(mytext, (100,750))
+    mytext = my_font.render("which lead to spectral class changes", True, (133,143,146))
+    screen.blit(mytext, (100,800))
+    mytext = my_font.render("by an estimation of surface temperature", True, (133,143,146))
+    screen.blit(mytext, (100,850))
+
+    mytext = my_font.render("m < 28", True, (133,143,146))
+    screen.blit(mytext, (800,700)) 
+    mytext = my_font.render("28 < m < 60", True, (133,143,146))
+    screen.blit(mytext, (800,775)) 
+    mytext = my_font.render("m > 60", True, (133,143,146))
+    screen.blit(mytext, (800,850)) 
+    mytext = my_font.render("White Dwarf", True, (133,143,146))
+    screen.blit(mytext, (1100,700)) 
+    mytext = my_font.render("Neutron Star (through supernova)", True, (133,143,146))
+    screen.blit(mytext, (1100,775) )
+    mytext = my_font.render("Black Hole (through supernova)", True, (133,143,146))
+    screen.blit(mytext, (1100,850)) 
+
+    my_font = pygame.font.SysFont('Times new roman', 50)   
+    mytext = my_font.render("Mass Units", True, (133,143,146))
+    screen.blit(mytext, (800,650))  
+    mytext = my_font.render("Result", True, (133,143,146))
+    screen.blit(mytext, (1100,650)) 
+
 
 #this will draw the base screen of the main simulator part of the program and provide an interaface
 def mainSimulator():
@@ -757,7 +837,7 @@ def hashingAlgorithm(textToHash):
     return totalValue
 
 #handles creation of a new account within the database. using sql insert commands
-def newAccountDB():
+def newAccountDB(securityQuestionID):
     con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
     cur = con.cursor()
     #select all fields from accounts and order by ID descending
@@ -769,14 +849,13 @@ def newAccountDB():
     #make sure program keeps track of hte new accounts id by adding one to the id field of hte first qsult
     g = int(result.fetchone()[0]) + 1
     #if account type is student then blank the questionid and the text hash fields
-    if accountType != "Teacher":
+    if not checkIfTeacher():
         securityQuestionID = ""
         securityTextHash = ""
     #if it is teacher, then we setup the value to be put in the security text hash field for 2fa
     else:
         securityTextHash = hashingAlgorithm(securityText)
         #securityQuestionID <-
-        securityQuestionID = 1
     #insert data query, passes 6 parameters into the account creation process for the fields
     insert_data_query = """
     INSERT INTO accounts VALUES(?, ?, ?, ?, ?, ?);
@@ -821,6 +900,7 @@ def saveSimToFile(saveslot):
     #this determines the path of the files it saves, and opens the file at that path
     f = open(r"C:\Users\alanj\Downloads\NEA\save" + path, "a")
     for i in range(len(placedobjects)):
+        f.write(str(placedobjects[i].__class__.__name__) + "\n")
         f.write(str(placedobjects[i].position) + "\n")
         f.write(str(placedobjects[i].radius) + "\n")
         f.write(str(placedobjects[i].colour) + "\n")
@@ -828,6 +908,8 @@ def saveSimToFile(saveslot):
         f.write(str(placedobjects[i].angle) + "\n")
         f.write(str(placedobjects[i].angleincrement) + "\n")
         f.write(str(placedobjects[i].mass) + "\n")
+        if placedobjects[i].__class__.__name__ != "Planet":
+            f.write(str(placedobjects[i].temperature)+"\n")
         f.write("\n")
     f.close()
 
@@ -837,13 +919,13 @@ def loadSimFromFile(saveslot):
     path = str(saveslot) + ".txt"
     f = open(r"C:\Users\alanj\Downloads\NEA\save" + path, "r")
     while True:
-        position = f.readline().strip()
-        if position == "":
+        className = f.readline().strip()
+        if className == "":
             break
-        else:
-            #this line helps convert any lists stored as text in the file into a usable format by the program
-            position = ast.literal_eval(position)
+            
         #gather all attributes from this section of the save file
+        position = f.readline().strip()
+        position = ast.literal_eval(position)
         radius = float(f.readline().strip())
         colour = ast.literal_eval(f.readline().strip())
         print(type(colour))
@@ -851,10 +933,25 @@ def loadSimFromFile(saveslot):
         angle = float(f.readline().strip())
         angleincrement = float(f.readline().strip())
         mass = float(f.readline().strip())
+        if className != "Planet":
+            temperature = float(f.readline().strip())
         f.readline()
         #create a planet with the atributes that were just read
-        planet = Planet(position, radius, colour, speed, angle, angleincrement, mass)
-        placedobjects.append(planet)
+        if className == "Protostar":
+            objectToCreate = Protostar(position, radius, colour, speed, angle, angleincrement, mass, temperature)
+        elif className == "MainSequenceStar":
+            objectToCreate = MainSequenceStar(position, radius, colour, speed, angle, angleincrement, mass, temperature)
+        elif className == "RedGiant":
+            objectToCreate = RedGiant(position, radius, colour, speed, angle, angleincrement, mass, temperature)
+        elif className == "DwarfStar":
+            objectToCreate = DwarfStar(position, radius, colour, speed, angle, angleincrement, mass, temperature)
+        elif className == "NeutronStar":
+            objectToCreate = NeutronStar(position, radius, colour, speed, angle, angleincrement, mass, temperature)
+        elif className == "Blackhole":
+            objectToCreate = BlackHole(position, radius, colour, speed, angle, angleincrement, mass, temperature)
+        else:
+            objectToCreate = Planet(position, radius, colour, speed, angle, angleincrement, mass)
+        placedobjects.append(objectToCreate)
     f.close()
     return placedobjects
                                 
@@ -1248,7 +1345,7 @@ while True:
                 
                 if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90 and len(passwordText) > 4 and len(usernameText) > 4 and not checkUserExists():
                     if accountType == "Student":
-                        newAccountDB()
+                        newAccountDB(securityQuestionID)
                         mainmenu2appear = True
                         signup_appear = False
                     elif accountType == "Teacher":
@@ -1276,7 +1373,7 @@ while True:
                     securityQuestionID = 3   
                 
                 if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90 and len(passwordText) > 4 and len(usernameText) > 4:
-                    newAccountDB()
+                    newAccountDB(securityQuestionID)
                     mainmenu2appear = True
                     securityCreateAppear = False
                 elif 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
@@ -1300,6 +1397,10 @@ while True:
                     resetScreen()
                 if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90 and usernameText != "":
                     viewStudentStats = True
+                    mainmenu2appear = False
+                    resetScreen()
+                if 1300 <= mouse[0] <= 1300+200 and 300 <= mouse[1] <= 300+90:
+                    viewGuide = True
                     mainmenu2appear = False
                     resetScreen()
 
@@ -1349,7 +1450,11 @@ while True:
                         mainmenu2appear = True
                         viewStudentStats = False
                         resetScreen()                
-
+            elif viewGuide:
+                if 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
+                        mainmenu2appear = True
+                        viewGuide = False
+                        resetScreen()
             elif main_appear == True:
                 if 0 <= mouse[0] <= 0+200 and 850 <= mouse[1] <= 850+100:
                     resetScreen()
@@ -1537,8 +1642,8 @@ while True:
                     else:
                         if enterSimSpeed < 0:
                             simSpeed = 0
-                        elif enterSimSpeed > 100 :
-                            simSpeed = 100
+                        elif enterSimSpeed > 10 :
+                            simSpeed = 10
                         else:
                             simSpeed = enterSimSpeed
                     enterSimSpeed = str(simSpeed)
@@ -1812,5 +1917,7 @@ while True:
     
     elif viewStudentStats:
         viewStatsMenu()
-        
+    
+    elif viewGuide:
+        viewGuideMenu()
     pygame.display.update()
