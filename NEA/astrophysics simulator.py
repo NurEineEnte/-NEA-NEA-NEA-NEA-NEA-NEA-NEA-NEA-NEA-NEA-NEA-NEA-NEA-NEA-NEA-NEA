@@ -125,8 +125,11 @@ def mainMenuLoggedIn():
     #define buttons
     newBtn = Button(screen, [600,400,450,90])
     loadBtn = Button(screen, [600,600,450,90])
-    statsBtn = Button(screen, [600,800,450,90])
-    activeBtns = [newBtn, loadBtn, statsBtn]
+    
+    activeBtns = [newBtn, loadBtn]
+    if usernameText != "":
+        statsBtn = Button(screen, [600,800,450,90])
+        activeBtns.append(statsBtn)
     #drawing buttons
     for btn in activeBtns:
         btn.render(screen, btn.position)
@@ -180,8 +183,29 @@ def loadSimsMenu():
 def viewStatsMenu():
     #draw title of page
     my_font = pygame.font.SysFont('Times new roman', 100)
-    mytext = my_font.render("User Statistics", True, (180,167,214))
-    screen.blit(mytext, (530,100))
+    if checkIfTeacher():
+        mytext = my_font.render("User Statistics", True, (180,167,214))
+        screen.blit(mytext, (530,100))
+        
+        con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+        cur = con.cursor()
+        search_query = ("""SELECT username, objectsPlaced
+                        FROM accounts, accountstats""")
+        result = cur.execute(search_query)
+        my_font = pygame.font.SysFont('Times new roman', 50)
+        mytext = my_font.render("Username", True, (133,143,146))
+        screen.blit(mytext, (350,200))
+        mytext = my_font.render("Objects Placed", True, (133,143,146))
+        screen.blit(mytext, (1050,200))
+        accountstats = row = result.fetchall()
+        my_font = pygame.font.SysFont('Times new roman', 20)
+        for i in range(len(accountstats)):
+            mytext = my_font.render(row[i][0], True, (180,167,214))
+            screen.blit(mytext, (350,250+i*30))
+            mytext = my_font.render(str(row[i][1]), True, (180,167,214))
+            screen.blit(mytext, (1050,250+i*30))
+
+        con.close()
     #define buttons
     backBtn = Button(screen, [575,910,450,20])
     activeBtns = [backBtn]
@@ -197,6 +221,12 @@ def viewStatsMenu():
 def mainSimulator():
     #reset the screen before rendering
     resetScreen()
+    for planet in placedobjects:
+    #determines a planets radius which will scale in line with a planets mass
+        if planet.__class__.__name__ == "MainSequenceStar" or planet.__class__.__name__ == "Planet":
+            planet.determineradius()
+        #draws each planet individually
+        planet.draw(screen)
     #define buttons
     musicBtn = Button(screen, [0,850,200,100])
     playBtn = Button(screen, [200,850,200,100])
@@ -220,6 +250,50 @@ def mainSimulator():
     for btn in activeBtns:
         btn.render(screen, btn.position)
     #draw text onto buttons
+    my_font = pygame.font.SysFont('Times new roman', 25) 
+    if musicmuted:
+        mytext = my_font.render("unmute music", True, (0, 0, 0))
+        screen.blit(mytext, (20,850))  
+    else:
+        mytext = my_font.render("mute music", True, (0, 0, 0))
+        screen.blit(mytext, (30,850))                           
+    if planetcreate:
+        mytext = my_font.render("planet on", True, (0, 0, 0))
+        screen.blit(mytext, (400,850))
+    else:
+        mytext = my_font.render("planet off", True, (0, 0, 0))
+        screen.blit(mytext, (400,850))
+    if pstarcreate:
+        mytext = my_font.render("pstar on", True, (0, 0, 0))
+        screen.blit(mytext, (515,850))
+    else:
+        mytext = my_font.render("pstar off", True, (0, 0, 0))
+        screen.blit(mytext, (515,850))
+    if starcreate:
+        mytext = my_font.render("star on", True, (0, 0, 0))
+        screen.blit(mytext, (400,883))
+    else:
+        mytext = my_font.render("star off", True, (0, 0, 0))
+        screen.blit(mytext, (400,883))
+    if giantcreate:
+        mytext = my_font.render("giant on", True, (0, 0, 0))
+        screen.blit(mytext, (500,883))
+    else:
+        mytext = my_font.render("giant off", True, (0, 0, 0))
+        screen.blit(mytext, (500,883))       
+    if nstarcreate:
+        mytext = my_font.render("nstar on", True, (0, 0, 0))
+        screen.blit(mytext, (400,916))
+    else:
+        mytext = my_font.render("nstar off", True, (0, 0, 0))
+        screen.blit(mytext, (400,916))
+    if bholecreate:
+        mytext = my_font.render("bhole on", True, (0, 0, 0))
+        screen.blit(mytext, (500,916))
+    else:
+        mytext = my_font.render("bhole off", True, (0, 0, 0))
+        screen.blit(mytext, (500,916))    
+        
     my_font = pygame.font.SysFont('Times new roman', 30)
     mytext = my_font.render("Save sim", True, (0,0,0))
     screen.blit(mytext, (670,850))
@@ -234,12 +308,7 @@ def mainSimulator():
     screen.blit(mytext, (1100,850))
 
     #this iterates through all objects/celestial bodies currently in the file, and renders them properly
-    for planet in placedobjects:
-        #determines a planets radius which will scale in line with a planets mass
-        if planet.__class__.__name__ == "MainSequenceStar" or planet.__class__.__name__ == "Planet":
-            planet.determineradius()
-        #draws each planet individually
-        planet.draw(screen)
+
 
 #the objectmenu subroutine is called when the user clicks on a planet, presumably to edit its attributes
 #this will handle the drawing of everything related to it
@@ -727,6 +796,23 @@ def newAccountDB():
     #important to commit then close
     con.close()
 
+def incrementUserStats():
+    if usernameText != "":
+        con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+        cur = con.cursor()
+        search_query = ("""SELECT objectsPlaced, accountstats.accountID
+                    FROM accounts, accountstats                          
+                    WHERE username = ?
+                    AND accounts.accountID = accountstats.accountID""")
+        result = cur.execute(search_query, (usernameText,))
+        row = result.fetchone()
+        update_query = ("""UPDATE accountstats
+                        SET objectsPlaced = ?
+                        WHERE accountID = ? """)
+        cur.execute(update_query, (row[0]+1, row[1],))
+        con.commit()
+        con.close()
+
 #handles the code part of saving the simulator and writing to a text file for this               
 def saveSimToFile(saveslot):
     path = str(saveslot) + ".txt"
@@ -816,7 +902,7 @@ class Planet:
     #this method changes the position of the object depending on its speed and angle
     def anglemove(self):
         self.angle %= 360
-        self.position = (self.position[0]+self.speed*math.sin(math.radians(self.angle)), self.position[1]-self.speed*math.cos(math.radians(self.angle)))
+        self.position = (self.position[0]+(simSpeed*self.speed*math.sin(math.radians(self.angle))), self.position[1]-(simSpeed*self.speed*math.cos(math.radians(self.angle))))
 
 #this function calculates the force it experiences as a result of another planet and calculates what the new speed and angle should be when combined
     def movevectors(self, otherBody):
@@ -831,7 +917,7 @@ class Planet:
 
 
         # f = ma rearranged to a = f/m
-        acceleration = force / self.mass
+        acceleration = simSpeed * force / self.mass
 
     #calculates the current speed in its vectory componet forms
         speed = (self.speed * math.sin(math.radians(self.angle)), -self.speed * math.cos(math.radians(self.angle)))
@@ -905,7 +991,7 @@ class Protostar(Planet):
         self.radius += (0.05 * multiplier)
     #temperature, or core temperature is the main statistic determining when next phases will happen with these objects
     def incrementTemperature(self):
-        self.temperature += 10000
+        self.temperature += simSpeed*10000
     
 #main sequence star inherits from the planet class too
 class MainSequenceStar(Planet):
@@ -943,7 +1029,7 @@ class MainSequenceStar(Planet):
     #if is also how the program knows to moves a star into red giant phase
     #this also redefines increment temperature specific to this object
     def incrementTemperature(self):
-        self.temperature += 85000
+        self.temperature += simSpeed*85000
 
 #creates red giant class, inheriting from planet
 class RedGiant(Planet):
@@ -958,11 +1044,11 @@ class RedGiant(Planet):
     #and redefine how the radius visually increases as time passes, this is done to show swelling and contracting for the red giant
     #this also controls when a red giant will end up going supernova
     def incrementRadius(self, multiplier=1):
-        self.radius += (0.05 * multiplier)
+        self.radius += (0.05 * multiplier * simSpeed)
     #again, redefining hte increment temperature procedure, showing polymorphism
     #this will constantly increase along with time
     def incrementTemperature(self):
-        self.temperature += 200000
+        self.temperature += simSpeed*200000
 
 
 #class dwarf star after a star with <1.4 solar masses ends its main sequence and red giant phases
@@ -982,7 +1068,7 @@ class DwarfStar(Planet):
         self.radius = 10 + self.mass * 0.1
     #polymorphism, this simulates the cooling of the dwarf star, and this will simply happen over time
     def incrementTemperature(self):
-        self.temperature -= 300000
+        self.temperature -= simSpeed*300000
     def determineColour(self):
         #however, as the dwarf star cools down over time, it will glow less and less as it emits less energy
         #i have chosen to simulate this by doing it as a ratio of what is close to the initial temperature for a white dwarf
@@ -997,9 +1083,9 @@ class DwarfStar(Planet):
     def incrementRadius(self):
       self.radius += 0.5
 
-#class for a neutron star, inherits from planet
+
 class NeutronStar(Planet):
-    #
+#class for a neutron star, inherits from planet
     def __init__(self, position, radius, colour, speed, angle, angleincrement, mass, temperature):
         super().__init__(position, radius, colour, speed, angle, angleincrement, mass)
         self.temperature = temperature
@@ -1088,6 +1174,7 @@ while True:
                     resetScreen()
                 if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90:
                     main_appear = True
+                    usernameText = ""
                     mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
                     mixer.music.play(1)
                     mainmenuappear = False
@@ -1116,7 +1203,7 @@ while True:
                         else:
                             print("pass fail")
                     else:
-                        print("user fale")
+                        print("user fail")
 
                     resetScreen()
                 elif 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
@@ -1211,58 +1298,52 @@ while True:
                     loadSims_appear = True
                     mainmenu2appear = False
                     resetScreen()
-                if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90:
+                if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90 and usernameText != "":
                     viewStudentStats = True
                     mainmenu2appear = False
                     resetScreen()
 
             elif loadSims_appear:
+                    resetScreen()
                     if 400 <= mouse[0] <= 400+250 and 400<= mouse[1] <= 400+90:
                         placedobjects = loadSimFromFile(1)
                         main_appear = True
                         loadSims_appear = False
-                        resetScreen()
                         mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
                         mixer.music.play(1)
                     elif 400 <= mouse[0] <= 400+250 and 600<= mouse[1] <= 600+90:
                         placedobjects = loadSimFromFile(2)
                         main_appear = True
                         loadSims_appear = False
-                        resetScreen()
                         mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
                         mixer.music.play(1)        
                     elif 400 <= mouse[0] <= 400+250 and 800<= mouse[1] <= 800+90:
                         placedobjects = loadSimFromFile(3)
                         main_appear = True
-                        loadSims_appear = False
-                        resetScreen()                        
+                        loadSims_appear = False                        
                         mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
                         mixer.music.play(1)        
                     elif 1000 <= mouse[0] <= 1000+250 and 400<= mouse[1] <= 400+90:
                         placedobjects = loadSimFromFile(4)
                         main_appear = True
-                        loadSims_appear = False
-                        resetScreen()                        
+                        loadSims_appear = False                       
                         mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
                         mixer.music.play(1)        
                     elif 1000 <= mouse[0] <= 1000+250 and 600<= mouse[1] <= 600+90:
                         placedobjects = loadSimFromFile(5)
                         main_appear = True
                         loadSims_appear = False
-                        resetScreen()
                         mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
                         mixer.music.play(1)        
                     elif 1000 <= mouse[0] <= 1000+250 and 800<= mouse[1] <= 800+90:
                         placedobjects = loadSimFromFile(6)
                         main_appear = True
                         loadSims_appear = False
-                        resetScreen()
                         mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
                         mixer.music.play(1)                            
                     elif 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
                         mainmenu2appear = True
                         loadSims_appear = False
-                        resetScreen()
             elif viewStudentStats:
                     if 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
                         mainmenu2appear = True
@@ -1282,6 +1363,7 @@ while True:
                 #play button
                 elif 200 <= mouse[0] <= 200+200 and 850 <= mouse[1] <= 850+100:
                     resetScreen()
+                    createSaveAppear = False
                     if playing == False:
                         playing = True
                     else:
@@ -1294,7 +1376,7 @@ while True:
                     placedobjects[checkedplanet].angle = float(enterAngle)
                     placedobjects[checkedplanet].speed = float(enterSpeed)                 
                 #if they click outside of the object menu on a planet then opens the objectmenu by setting it to appear
-                elif not planetcreate and not pstarcreate and playing == False and objectMenuAppear == False and mouse[1] < 850:
+                elif not planetcreate and not pstarcreate and not starcreate and not giantcreate and not nstarcreate and not bholecreate and playing == False and objectMenuAppear == False and mouse[1] < 850:
                     for checkedplanet in range(len(placedobjects)):
                         if placedobjects[checkedplanet].checkclick():
                             enterMass = placedobjects[checkedplanet].mass
@@ -1329,24 +1411,81 @@ while True:
                     else:
                         planetcreate = False
                         pstarcreate = False
+                        starcreate = False
+                        giantcreate = False
+                        nstarcreate = False
+                        bholecreate = False
+                        playing = False
                         createSaveAppear = True
                         resetScreen()
                         
                                 #toggle planet creation    
-                elif 400 <= mouse[0] <= 400+100 and 850 <= mouse[1] <= 850+100:
+                elif 400 <= mouse[0] <= 400+100 and 850 <= mouse[1] <= 850+33:
                     resetScreen()
                     if not planetcreate:
                         planetcreate = True
                         pstarcreate = False
+                        starcreate = False
+                        giantcreate = False
+                        nstarcreate = False
+                        bholecreate = False
                     else:
                         planetcreate = False
-                elif 500 <= mouse[0] <= 500+100 and 850 <= mouse[1] <= 850+100:
+                elif 500 <= mouse[0] <= 500+100 and 850 <= mouse[1] <= 850+33:
                     resetScreen()
                     if not pstarcreate:
-                        pstarcreate = True
                         planetcreate = False
+                        pstarcreate = True
+                        starcreate = False
+                        giantcreate = False
+                        nstarcreate = False
+                        bholecreate = False
                     else:
                         pstarcreate = False
+                elif 400 <= mouse[0] <= 400+100 and 883 <= mouse[1] <= 883+33:
+                    resetScreen()
+                    if not starcreate:
+                        planetcreate = False
+                        pstarcreate = False
+                        starcreate = True
+                        giantcreate = False
+                        nstarcreate = False
+                        bholecreate = False
+                    else:
+                        starcreate = False
+                elif 500 <= mouse[0] <= 500+100 and 883 <= mouse[1] <= 883+33:
+                    resetScreen()
+                    if not giantcreate:
+                        planetcreate = False
+                        pstarcreate = False
+                        starcreate = False
+                        giantcreate = True
+                        nstarcreate = False
+                        bholecreate = False
+                    else:
+                        giantcreate = False
+                elif 400 <= mouse[0] <= 400+100 and 916 <= mouse[1] <= 916+34:
+                    resetScreen()
+                    if not nstarcreate:
+                        planetcreate = False
+                        pstarcreate = False
+                        starcreate = False
+                        giantcreate = False
+                        nstarcreate = True
+                        bholecreate = False
+                    else:
+                        nstarcreate = False
+                elif 500 <= mouse[0] <= 500+100 and 916 <= mouse[1] <= 916+34:
+                    resetScreen()
+                    if not bholecreate:
+                        planetcreate = False
+                        pstarcreate = False
+                        starcreate = False
+                        giantcreate = False
+                        nstarcreate = False
+                        bholecreate = True
+                    else:
+                        bholecreate = False
                 elif 850 <= mouse[0] <= 850+250 and 850 <= mouse[1] <= 850+100:
                     playing = False
                     objectMenuAppear = False
@@ -1365,14 +1504,31 @@ while True:
                     enteringSimSpeed = True
                     enterSimSpeed = str(simSpeed)
                 elif planetcreate and playing == False: 
-                    planet = Planet(mouse, 15, (random.randint(0,255), random.randint(0,255), random.randint(0,255)), 5, 90, 1, 5)
-                    placedobjects.append(planet)
+                    objectToCreate = Planet(mouse, 15, (random.randint(0,255), random.randint(0,255), random.randint(0,255)), 5, 90, 1, 5)
+                    placedobjects.append(objectToCreate)
+                    incrementUserStats()
                 elif pstarcreate and playing == False:
-                    star = Protostar(mouse, 15, (20,20,20), 0, 0, 0, 100,0)    
-                    placedobjects.append(star)
-
+                    objectToCreate = Protostar(mouse, 15, (20,20,20), 0, 0, 0, 100,0)    
+                    placedobjects.append(objectToCreate)
+                    incrementUserStats()
+                elif starcreate and playing == False:
+                    objectToCreate = MainSequenceStar(mouse, 15, (20,20,20), 0, 0, 0, 100,0)    
+                    placedobjects.append(objectToCreate)
+                    incrementUserStats()
+                elif giantcreate and playing == False:
+                    objectToCreate = RedGiant(mouse, 15, (20,20,20), 0, 0, 0, 100,0)    
+                    placedobjects.append(objectToCreate)
+                    incrementUserStats()
+                elif nstarcreate and playing == False:
+                    objectToCreate = NeutronStar(mouse, 15, (20,20,20), 0, 0, 0, 100,0)    
+                    placedobjects.append(objectToCreate)
+                    incrementUserStats()
+                elif bholecreate and playing == False:
+                    objectToCreate = BlackHole(mouse, 15, (20,20,20), 0, 0, 0, 100,0)    
+                    placedobjects.append(objectToCreate)
+                    incrementUserStats()
                 
-                if  not 1100 <= mouse[0] <= 1100+500 and  not 850 <= mouse[1] <= 850+100:
+                if (not 1100 <= mouse[0] <= 1100+500 or not 850 <= mouse[1] <= 850+100) and enteringSimSpeed:
                     enteringSimSpeed = False
                     try:
                         enterSimSpeed = float(enterSimSpeed)
@@ -1386,6 +1542,7 @@ while True:
                         else:
                             simSpeed = enterSimSpeed
                     enterSimSpeed = str(simSpeed)
+                    print(simSpeed)
                     
 
                     
@@ -1487,7 +1644,7 @@ while True:
                     screen.blit(mytext, (575,500))
                 else:
                     securityText += event.unicode
-            if enterSimSpeed == True:
+            if enteringSimSpeed == True:
                 if event.key == pygame.K_BACKSPACE:
                     enterSimSpeed = enterSimSpeed[:-1]
                 else:
@@ -1517,50 +1674,7 @@ while True:
     if main_appear == True:
         mainSimulator()
 
-        my_font = pygame.font.SysFont('Times new roman', 25) 
-
-        if musicmuted:
-            mytext = my_font.render("unmute music", True, (0, 0, 0))
-            screen.blit(mytext, (20,850))  
-        else:
-            mytext = my_font.render("mute music", True, (0, 0, 0))
-            screen.blit(mytext, (30,850))                           
-        if planetcreate:
-            mytext = my_font.render("planet on", True, (0, 0, 0))
-            screen.blit(mytext, (400,850))
-        else:
-            mytext = my_font.render("planet off", True, (0, 0, 0))
-            screen.blit(mytext, (400,850))
-        if pstarcreate:
-            mytext = my_font.render("pstar on", True, (0, 0, 0))
-            screen.blit(mytext, (515,850))
-        else:
-            mytext = my_font.render("pstar off", True, (0, 0, 0))
-            screen.blit(mytext, (515,850))
-        if starcreate:
-            mytext = my_font.render("star on", True, (0, 0, 0))
-            screen.blit(mytext, (400,883))
-        else:
-            mytext = my_font.render("star off", True, (0, 0, 0))
-            screen.blit(mytext, (400,883))
-        if giantcreate:
-            mytext = my_font.render("giant on", True, (0, 0, 0))
-            screen.blit(mytext, (500,883))
-        else:
-            mytext = my_font.render("giant off", True, (0, 0, 0))
-            screen.blit(mytext, (500,883))       
-        if nstarcreate:
-            mytext = my_font.render("nstar on", True, (0, 0, 0))
-            screen.blit(mytext, (400,916))
-        else:
-            mytext = my_font.render("nstar off", True, (0, 0, 0))
-            screen.blit(mytext, (400,916))
-        if bholecreate:
-            mytext = my_font.render("bhole on", True, (0, 0, 0))
-            screen.blit(mytext, (500,916))
-        else:
-            mytext = my_font.render("bhole off", True, (0, 0, 0))
-            screen.blit(mytext, (500,916))
+        
 
 
 
@@ -1573,7 +1687,7 @@ while True:
 
         if playing:
 
-            resetScreen()
+            mainSimulator()
             mytext = my_font.render("playing", True, (0, 0, 0))
             screen.blit(mytext, (250,850))
 
@@ -1675,6 +1789,7 @@ while True:
             pygame.display.update() 
                               
         else:
+            my_font = pygame.font.SysFont('Times new roman', 25)
             mytext = my_font.render("paused", True, (0, 0, 0))
             screen.blit(mytext, (250,850))
     elif login_appear == True:
