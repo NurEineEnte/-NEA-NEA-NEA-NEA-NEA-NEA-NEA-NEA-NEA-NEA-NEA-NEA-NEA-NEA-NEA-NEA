@@ -1,1 +1,7 @@
 mimimimi
+
+
+ok 28/10/2026 god forbid im fettering myself again with the shackles of this project
+-make database file run in main program automatically so it doesnt have to be run separately
+    - make sure it creates in the working directory
+-make sure image files are loaded from the working directory instead of using the paths of my device!
