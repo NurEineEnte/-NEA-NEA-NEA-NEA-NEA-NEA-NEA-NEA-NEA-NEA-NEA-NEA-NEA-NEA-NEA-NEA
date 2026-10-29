@@ -94,6 +94,77 @@ def resetScreen():
     #fills screen with black
     screen.fill((0,0,0))
 
+def database_setup():
+    con = sqlite3.connect("simulatorDB.db")
+    cur = con.cursor()
+
+    #cur.execute("DROP TABLE IF EXISTS accounts")
+
+    create_table_query = """
+        CREATE TABLE accounts(
+            accountID int KEY NOT NULL,
+            username VARCHAR(30) NOT NULL,
+            password VARCHAR(10) NOT NULL,
+            accountType VARCHAR(1) NOT NULL,
+            questionAnswer VARCHAR(10) NOT NULL,
+            questionID int KEY
+        );
+    """
+    cur.execute(create_table_query)
+
+    #cur.execute("DROP TABLE IF EXISTS securityQuestions")
+    create_table_query = """
+        CREATE TABLE securityQuestions(
+            questionID INT KEY NOT NULL,
+            question VARCHAR(255) NOT NULL        
+        );
+    """
+    cur.execute(create_table_query)
+
+    cur.execute("""
+    INSERT INTO securityQuestions VALUES
+        (1, "Which city were you born in?"),
+        (2, "What was the name of your first pet?"),
+        (3, "What is your favourite food?")           
+        ;
+    """)
+
+    con.commit()
+
+    #cur.execute("DROP TABLE IF EXISTS accountstats")
+    create_table_query = """
+        CREATE TABLE accountstats(
+            accountID INT KEY NOT NULL,
+            playtime INT NOT NULL,
+            objectsPlaced int NOT NULL        
+        );
+    """
+    cur.execute(create_table_query)
+
+    searchResult = cur.execute("SELECT * FROM securityQuestions")
+    print(searchResult.fetchall())
+
+    insert_data_query = """
+    INSERT INTO accounts VALUES(1, "testing123", "1203", "T", "1230", 1);
+    """
+    cur.execute(insert_data_query)
+    con.commit()
+
+
+    insert_data_query = """
+    INSERT INTO accountstats VALUES(1, 0, 4);
+    """
+    cur.execute(insert_data_query)
+    con.commit()
+
+    searchResult = cur.execute("SELECT * FROM accounts WHERE accountID = 1")
+    print(searchResult.fetchone())
+    searchResult = cur.execute("SELECT * FROM accountstats WHERE accountID = 1")
+    print(searchResult.fetchone())
+
+    con.close()
+
+
 #below subroutine handles the drawing of my main menu for when you are not logged in
 def mainMenu():
     #snippet of how I render font, this time it draws the program name
@@ -191,7 +262,7 @@ def viewStatsMenu():
         mytext = my_font.render("User Statistics", True, (180,167,214))
         screen.blit(mytext, (530,100))
         
-        con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+        con = sqlite3.connect(r"simulatorDB.db")
         cur = con.cursor()
         search_query = ("""SELECT username, objectsPlaced
                         FROM accounts, accountstats
@@ -214,7 +285,7 @@ def viewStatsMenu():
     else:
         mytext = my_font.render("Your Statistics", True, (180,167,214))
         screen.blit(mytext, (530,100))
-        con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+        con = sqlite3.connect(r"simulatorDB.db")
         cur = con.cursor()
         search_query = ("""SELECT objectsPlaced
                         FROM accounts, accountstats
@@ -516,7 +587,7 @@ def signInScreen():
 #below is the function to check whether a user with a certain username has already been registered within tht account system or not
 def checkUserExists():
     #conect to the database
-    con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+    con = sqlite3.connect(r"simulatorDB.db")
     #create point of interaction
     cur = con.cursor()
     #selects usernames from the acccounts table where username is a parameter ? to be passed in with the execute
@@ -540,7 +611,7 @@ def checkUserExists():
 #function while logging in, checks if the password matches what is in the database when hashed to authenticate password
 def checkpassword():
     #connect to database
-    con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+    con = sqlite3.connect(r"simulatorDB.db")
     #object to interact with database
     cur = con.cursor()
     #returns the password from the accounts table where the username parameter is the one you are authenticatingg for
@@ -563,7 +634,7 @@ def checkpassword():
 #checks the account type of the user to see if they are a teacher and should be prompted for a security question
 def checkIfTeacher():
     #open database and create object to interact
-    con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+    con = sqlite3.connect(r"simulatorDB.db")
     cur = con.cursor()
     #select account type from accounts table where username parameter is the username they put in
     search_query = ("""SELECT accountType
@@ -624,7 +695,7 @@ def securityverifyscreen():
     my_font = pygame.font.SysFont('Times new roman', 50)
 
 #create connection to database and object to interact
-    con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+    con = sqlite3.connect(r"simulatorDB.db")
     cur = con.cursor()
     #select the specific question from the question database that corresponds to the questionID of the question
     #the user picked as their question when making an account and displays this question
@@ -651,7 +722,7 @@ def securityverifyscreen():
 #as what hte user put in
 def verifySecurityInput():
     #create database and object to interact
-    con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+    con = sqlite3.connect(r"simulatorDB.db")
     cur = con.cursor()
     #this returns the answer to the question (which appears as an integer because its a hashed value) where the username is what they typed
     search_query = ("""SELECT questionanswer
@@ -779,7 +850,7 @@ def securityQuestionScreen():
 
     my_font = pygame.font.SysFont('Times new roman', 50)
 # connect to database and initialise cursor object to interact
-    con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+    con = sqlite3.connect(r"simulatorDB.db")
     cur = con.cursor()
 
 #if there is a security question id (student accounts dont have one)
@@ -838,7 +909,7 @@ def hashingAlgorithm(textToHash):
 
 #handles creation of a new account within the database. using sql insert commands
 def newAccountDB(securityQuestionID):
-    con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+    con = sqlite3.connect(r"simulatorDB.db")
     cur = con.cursor()
     #select all fields from accounts and order by ID descending
     result = cur.execute("""
@@ -877,7 +948,7 @@ def newAccountDB(securityQuestionID):
 
 def incrementUserStats():
     if usernameText != "":
-        con = sqlite3.connect(r"C:\Users\alanj\Downloads\NEA\simulatorDB.db")
+        con = sqlite3.connect(r"simulatorDB.db")
         cur = con.cursor()
         search_query = ("""SELECT objectsPlaced, accountstats.accountID
                     FROM accounts, accountstats                          
@@ -895,10 +966,10 @@ def incrementUserStats():
 #handles the code part of saving the simulator and writing to a text file for this               
 def saveSimToFile(saveslot):
     path = str(saveslot) + ".txt"
-    if os.path.exists(r"C:\Users\alanj\Downloads\NEA\save" + path):
-        os.remove(r"C:\Users\alanj\Downloads\NEA\save" + path)
+    if os.path.exists(r"save" + path):
+        os.remove(r"save" + path)
     #this determines the path of the files it saves, and opens the file at that path
-    f = open(r"C:\Users\alanj\Downloads\NEA\save" + path, "a")
+    f = open(r"save" + path, "a")
     for i in range(len(placedobjects)):
         f.write(str(placedobjects[i].__class__.__name__) + "\n")
         f.write(str(placedobjects[i].position) + "\n")
@@ -916,8 +987,8 @@ def saveSimToFile(saveslot):
 #code part of loading a simulation from file, and all its properties for each planets, converting in the process
 def loadSimFromFile(saveslot):
     placedobjects = []
-    path = str(saveslot) + ".txt"
-    f = open(r"C:\Users\alanj\Downloads\NEA\save" + path, "r")
+    path = "save" + str(saveslot) + ".txt"
+    f = open(path, "r")
     while True:
         className = f.readline().strip()
         if className == "":
@@ -1236,12 +1307,13 @@ screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption('Simulator')
 resetScreen()
 
-
+if not os.path.exists("simulatorDB.db"):
+    database_setup()
 
 
 #load music
 mixer.init()
-mixer.music.load(r"C:\Users\alanj\Downloads\NEA\above_story.ogg")
+mixer.music.load(r"above_story.ogg")
 mixer.music.set_volume(1)
 mixer.music.play(1)
 
@@ -1272,7 +1344,7 @@ while True:
                 if 600 <= mouse[0] <= 600+450 and 800 <= mouse[1] <= 800+90:
                     main_appear = True
                     usernameText = ""
-                    mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                    mixer.music.load(r"joy_of_rememberance.ogg")
                     mixer.music.play(1)
                     mainmenuappear = False
                     resetScreen()
@@ -1389,7 +1461,7 @@ while True:
                     main_appear = True
                     mainmenu2appear = False
                     resetScreen()
-                    mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                    mixer.music.load(r"joy_of_rememberance.ogg")
                     mixer.music.play(1)
                 if 600 <= mouse[0] <= 600+450 and 600 <= mouse[1] <= 600+90:
                     loadSims_appear = True
@@ -1407,40 +1479,58 @@ while True:
             elif loadSims_appear:
                     resetScreen()
                     if 400 <= mouse[0] <= 400+250 and 400<= mouse[1] <= 400+90:
+                        if not os.path.exists("save1.txt"):
+                            f = open("save1.txt", "w")
+                            f.close()
                         placedobjects = loadSimFromFile(1)
                         main_appear = True
                         loadSims_appear = False
-                        mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                        mixer.music.load(r"joy_of_rememberance.ogg")
                         mixer.music.play(1)
                     elif 400 <= mouse[0] <= 400+250 and 600<= mouse[1] <= 600+90:
+                        if not os.path.exists("save2.txt"):
+                            f = open("save2.txt", "w")
+                            f.close()
                         placedobjects = loadSimFromFile(2)
                         main_appear = True
                         loadSims_appear = False
-                        mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                        mixer.music.load(r"joy_of_rememberance.ogg")
                         mixer.music.play(1)        
                     elif 400 <= mouse[0] <= 400+250 and 800<= mouse[1] <= 800+90:
+                        if not os.path.exists("save3.txt"):
+                            f = open("save4.txt", "w")
+                            f.close()
                         placedobjects = loadSimFromFile(3)
                         main_appear = True
                         loadSims_appear = False                        
-                        mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                        mixer.music.load(r"joy_of_rememberance.ogg")
                         mixer.music.play(1)        
                     elif 1000 <= mouse[0] <= 1000+250 and 400<= mouse[1] <= 400+90:
+                        if not os.path.exists("save4.txt"):
+                            f = open("save4.txt", "w")
+                            f.close()
                         placedobjects = loadSimFromFile(4)
                         main_appear = True
                         loadSims_appear = False                       
-                        mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                        mixer.music.load(r"joy_of_rememberance.ogg")
                         mixer.music.play(1)        
                     elif 1000 <= mouse[0] <= 1000+250 and 600<= mouse[1] <= 600+90:
+                        if not os.path.exists("save5.txt"):
+                            f = open("save5.txt", "w")
+                            f.close()
                         placedobjects = loadSimFromFile(5)
                         main_appear = True
                         loadSims_appear = False
-                        mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                        mixer.music.load(r"joy_of_rememberance.ogg")
                         mixer.music.play(1)        
                     elif 1000 <= mouse[0] <= 1000+250 and 800<= mouse[1] <= 800+90:
+                        if not os.path.exists("save6.txt"):
+                            f = open("save6.txt", "w")
+                            f.close()
                         placedobjects = loadSimFromFile(6)
                         main_appear = True
                         loadSims_appear = False
-                        mixer.music.load(r"C:\Users\alanj\Downloads\NEA\joy_of_rememberance.ogg")
+                        mixer.music.load(r"joy_of_rememberance.ogg")
                         mixer.music.play(1)                            
                     elif 575 <= mouse[0] <= 575+450 and 910<= mouse[1] <= 910+20:
                         mainmenu2appear = True
@@ -1600,7 +1690,7 @@ while True:
                     placedobjects = []
                     main_appear = False
                     resetScreen()
-                    mixer.music.load(r"C:\Users\alanj\Downloads\NEA\above_story.ogg")
+                    mixer.music.load(r"above_story.ogg")
                     mixer.music.play(1)
                 elif 1100 <= mouse[0] <= 1100+500 and 850 <= mouse[1] <= 850+100 and objectMenuAppear == False:
                     playing = False
