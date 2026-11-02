@@ -1307,6 +1307,8 @@ screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption('Simulator')
 resetScreen()
 
+
+#paths like this should be good now
 if not os.path.exists("simulatorDB.db"):
     database_setup()
 
